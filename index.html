@@ -1,25 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
-<head> 
-<meta name="google-site-verification" content="stdPFxaTonGmm156wSyvFhGLmWt9u4YlI9sniIzQCtY" />
+<head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 <title>ZiN Working — Plan Your Week | Free Shift Planner</title>
-<meta name="description" content="ZiN Working is a free shift planner app. Plan your week, track work hours, import schedules from PDF or photo, see monthly summary. Works on Android, iPhone, and web." />
-<meta name="keywords" content="shift planner, work schedule, weekly planner, hour tracker, ZiN Working, shift tracker, work hours app, schedule app" />
+<meta name="description" content="ZiN Working is a free shift planner app. Plan your week, track work hours, import schedules from PDF or photo." />
+<meta name="keywords" content="shift planner, work schedule, weekly planner, hour tracker, ZiN Working" />
 <meta name="author" content="ZiN" />
 <meta name="robots" content="index, follow" />
-
+<meta name="google-site-verification" content="stdPFxaTonGmm156wSyvFhGLmWt9u4YlI9sniIzQCtY" />
 <meta property="og:title" content="ZiN Working — Plan Your Week" />
-<meta property="og:description" content="Free shift planner. Track weekly and monthly hours. Import schedule from PDF or photo. Works offline." />
+<meta property="og:description" content="Free shift planner with cloud sync. Track weekly and monthly hours." />
 <meta property="og:type" content="website" />
 <meta property="og:image" content="icon-512.png" />
-
-<meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="ZiN Working — Plan Your Week" />
-<meta name="twitter:description" content="Free shift planner. Track weekly and monthly hours." />
-<meta name="twitter:image" content="icon-512.png" />
-
 <meta name="theme-color" content="#0d1117" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-title" content="ZiN Working" />
@@ -29,232 +22,101 @@
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
-  :root {
-    --bg: #0d1117; --panel: #161b22; --panel-2: #1c222c;
-    --border: #2a313c; --text: #e6edf3; --muted: #8b949e;
-    --accent: #14b8a6; --accent-2: #fbbf24;
-    --danger: #f85149; --warn: #d29922;
-  }
-  [data-theme="light"] {
-    --bg: #f6f8fa; --panel: #ffffff; --panel-2: #f0f3f6;
-    --border: #d0d7de; --text: #1f2328; --muted: #656d76;
-    --accent: #0d9488; --accent-2: #f59e0b;
-    --danger: #cf222e; --warn: #9a6700;
-  }
+  :root { --bg:#0d1117; --panel:#161b22; --panel-2:#1c222c; --border:#2a313c; --text:#e6edf3; --muted:#8b949e; --accent:#14b8a6; --accent-2:#fbbf24; --danger:#f85149; --warn:#d29922; }
+  [data-theme="light"] { --bg:#f6f8fa; --panel:#ffffff; --panel-2:#f0f3f6; --border:#d0d7de; --text:#1f2328; --muted:#656d76; --accent:#0d9488; --accent-2:#f59e0b; --danger:#cf222e; --warn:#9a6700; }
   * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg); color: var(--text);
-    min-height: 100vh; padding: 16px;
-    transition: background 0.2s, color 0.2s;
-  }
-  .container { max-width: 920px; margin: 0 auto; }
-
-  header {
-    display: flex; justify-content: space-between;
-    align-items: center; margin-bottom: 20px;
-    gap: 12px; flex-wrap: wrap;
-  }
-  .brand { display: flex; align-items: center; gap: 12px; }
-  .logo {
-    width: 52px; height: 44px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-  .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
-  h1 {
-    margin: 0; font-size: 20px; font-weight: 700; letter-spacing: 0.3px;
-  }
-  .slogan {
-    font-size: 10px; color: var(--muted);
-    letter-spacing: 2px; text-transform: uppercase;
-    margin-top: 4px; font-weight: 500;
-  }
-  h1 .accent {
-    background: linear-gradient(90deg, var(--accent), var(--accent-2));
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-  }
-  .user-pill {
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: 999px; padding: 6px 12px;
-    font-size: 13px; color: var(--muted);
-    display: inline-flex; align-items: center; gap: 8px;
-    cursor: pointer;
-  }
-  .user-pill strong { color: var(--text); }
-  .user-pill.owner { border-color: var(--accent); }
-  .icon-btn {
-    background: transparent; border: 1px solid var(--border);
-    color: var(--text); width: 36px; height: 36px;
-    border-radius: 8px; cursor: pointer; font-size: 16px;
-    display: inline-flex; align-items: center; justify-content: center;
-  }
-  .icon-btn:hover { border-color: var(--accent); }
-  .owner-badge {
-    background: var(--accent); color: var(--bg);
-    font-size: 10px; font-weight: 700;
-    padding: 2px 6px; border-radius: 4px;
-    margin-left: 6px; text-transform: uppercase;
-  }
-
-  .tabs {
-    display: flex; gap: 4px;
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: 10px; padding: 4px; margin-bottom: 16px;
-  }
-  .tab {
-    flex: 1; padding: 10px;
-    background: transparent; border: none; color: var(--muted);
-    border-radius: 7px; cursor: pointer;
-    font-size: 14px; font-weight: 500;
-  }
-  .tab.active { background: var(--panel-2); color: var(--text); }
-
-  .panel {
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: 12px; padding: 16px; margin-bottom: 14px;
-  }
-  .panel h2 {
-    margin: 0 0 12px 0; font-size: 13px; font-weight: 600;
-    color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;
-  }
-
-  button {
-    background: var(--panel-2); color: var(--text);
-    border: 1px solid var(--border);
-    padding: 8px 14px; border-radius: 8px;
-    cursor: pointer; font-size: 14px; font-family: inherit;
-  }
-  button:hover { border-color: var(--accent); }
-  button.primary {
-    background: var(--accent); color: var(--bg);
-    border-color: var(--accent); font-weight: 600;
-  }
-  button.ghost { background: transparent; }
-  button.danger-text { color: var(--danger); }
-  button:disabled { opacity: 0.4; cursor: not-allowed; }
-  input, select {
-    background: var(--panel-2); color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px;
-    font-size: 14px; font-family: inherit; width: 100%;
-  }
-  input:focus, select:focus { outline: none; border-color: var(--accent); }
-  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-  label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
-
-  .week-nav {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 12px; gap: 8px;
-  }
-  .week-title { font-size: 15px; font-weight: 600; text-align: center; flex: 1; }
-
-  .day {
-    background: var(--panel-2); border: 1px solid var(--border);
-    border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
-    display: grid; grid-template-columns: 80px 1fr auto;
-    gap: 12px; align-items: center;
-  }
-  .day.today { border-color: var(--accent); }
-  .day .dname { font-weight: 600; font-size: 14px; }
-  .day .ddate { color: var(--muted); font-size: 12px; margin-top: 2px; }
-  .day .dtime { font-size: 15px; color: var(--accent-2); font-weight: 500; }
-  .day .dtime.off { color: var(--muted); font-style: italic; font-weight: normal; }
-  .day .dtime.empty { color: var(--muted); font-weight: normal; }
-  .day .dhours { font-size: 12px; color: var(--muted); margin-top: 2px; }
-
-  .stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
-  .stat {
-    background: var(--panel-2); border: 1px solid var(--border);
-    border-radius: 10px; padding: 12px; text-align: center;
-  }
-  .stat .lbl { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .stat .val { color: var(--accent); font-size: 24px; font-weight: 700; margin-top: 4px; }
-
-  .week-row {
-    background: var(--panel-2); border: 1px solid var(--border);
-    border-radius: 10px; padding: 10px 14px; margin-bottom: 6px;
-    display: flex; justify-content: space-between; align-items: center;
-    cursor: pointer; font-size: 14px;
-  }
-  .week-row:hover { border-color: var(--accent); }
-  .week-row .wr-range { color: var(--muted); font-size: 12px; }
-  .week-row .wr-hours { color: var(--accent); font-weight: 600; }
-
-  .modal-bg {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
-    display: none; align-items: center; justify-content: center;
-    z-index: 100; padding: 16px;
-  }
-  .modal-bg.show { display: flex; }
-  .modal {
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: 12px; padding: 20px; max-width: 400px; width: 100%;
-    max-height: 90vh; overflow-y: auto;
-  }
-  .modal h3 { margin: 0 0 14px 0; font-size: 16px; }
-  .modal .actions { display: flex; gap: 8px; margin-top: 16px; justify-content: flex-end; flex-wrap: wrap; }
-  .checkbox-row { display: flex; align-items: center; gap: 8px; margin: 12px 0; }
-  .checkbox-row input { width: auto; }
-
-  .profile-item {
-    background: var(--panel-2); border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px 12px; margin-bottom: 6px;
-    display: flex; justify-content: space-between; align-items: center;
-    cursor: pointer;
-  }
-  .profile-item:hover { border-color: var(--accent); }
-  .profile-item.active { border-color: var(--accent); }
-
-  .file-input-wrap {
-    border: 1px dashed var(--border); border-radius: 10px;
-    padding: 16px; text-align: center; margin-bottom: 8px;
-  }
-  .file-input-wrap input { width: auto; }
-  .warning {
-    background: color-mix(in srgb, var(--warn) 12%, transparent);
-    border: 1px solid var(--warn); color: var(--warn);
-    padding: 8px 12px; border-radius: 8px;
-    font-size: 12px; margin: 8px 0;
-  }
-  .info {
-    background: color-mix(in srgb, var(--accent) 10%, transparent);
-    border: 1px solid var(--accent); color: var(--accent);
-    padding: 8px 12px; border-radius: 8px;
-    font-size: 12px; margin: 8px 0;
-  }
-  #ocrOutput {
-    background: var(--panel-2); border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px; min-height: 60px;
-    white-space: pre-wrap;
-    font-family: ui-monospace, "SF Mono", Menlo, monospace;
-    font-size: 11px; color: var(--text);
-    max-height: 220px; overflow-y: auto;
-  }
-  #ocrProgress { color: var(--muted); font-size: 12px; margin: 6px 0; }
-
-  textarea {
-    background: var(--panel-2); color: var(--text);
-    border: 1px solid var(--border); border-radius: 8px;
-    padding: 10px; font-size: 12px; width: 100%;
-    font-family: ui-monospace, monospace;
-    min-height: 100px; resize: vertical;
-  }
-
-  .empty { text-align: center; color: var(--muted); padding: 24px 12px; font-size: 13px; }
-
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:16px; transition: background 0.2s, color 0.2s; }
+  .container { max-width:920px; margin:0 auto; }
+  header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; gap:12px; flex-wrap:wrap; }
+  .brand { display:flex; align-items:center; gap:12px; }
+  .logo { width:52px; height:44px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .brand-text { display:flex; flex-direction:column; line-height:1.1; }
+  h1 { margin:0; font-size:20px; font-weight:700; letter-spacing:0.3px; }
+  h1 .accent { background:linear-gradient(90deg,var(--accent),var(--accent-2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .slogan { font-size:10px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-top:4px; font-weight:500; }
+  .user-pill { background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:6px 12px; font-size:13px; color:var(--muted); display:inline-flex; align-items:center; gap:8px; cursor:pointer; }
+  .user-pill strong { color:var(--text); }
+  .user-pill.owner { border-color:var(--accent); }
+  .icon-btn { background:transparent; border:1px solid var(--border); color:var(--text); width:36px; height:36px; border-radius:8px; cursor:pointer; font-size:16px; display:inline-flex; align-items:center; justify-content:center; }
+  .icon-btn:hover { border-color:var(--accent); }
+  .owner-badge { background:var(--accent); color:var(--bg); font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; margin-left:6px; text-transform:uppercase; }
+  .owner-bar { background:var(--panel); border:1px solid var(--accent); border-radius:10px; padding:10px 12px; margin-bottom:14px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .owner-bar .label { font-size:12px; color:var(--accent); font-weight:600; }
+  .tabs { display:flex; gap:4px; background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:4px; margin-bottom:16px; }
+  .tab { flex:1; padding:10px; background:transparent; border:none; color:var(--muted); border-radius:7px; cursor:pointer; font-size:14px; font-weight:500; }
+  .tab.active { background:var(--panel-2); color:var(--text); }
+  .panel { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:14px; }
+  .panel h2 { margin:0 0 12px 0; font-size:13px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; }
+  button { background:var(--panel-2); color:var(--text); border:1px solid var(--border); padding:8px 14px; border-radius:8px; cursor:pointer; font-size:14px; font-family:inherit; }
+  button:hover { border-color:var(--accent); }
+  button.primary { background:var(--accent); color:var(--bg); border-color:var(--accent); font-weight:600; }
+  button.ghost { background:transparent; }
+  button.danger-text { color:var(--danger); }
+  button:disabled { opacity:0.4; cursor:not-allowed; }
+  input, select { background:var(--panel-2); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:10px; font-size:14px; font-family:inherit; width:100%; }
+  input:focus, select:focus { outline:none; border-color:var(--accent); }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  label { font-size:12px; color:var(--muted); display:block; margin-bottom:4px; }
+  .week-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:8px; }
+  .week-title { font-size:15px; font-weight:600; text-align:center; flex:1; }
+  .day { background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin-bottom:8px; display:grid; grid-template-columns:80px 1fr auto; gap:12px; align-items:center; }
+  .day.today { border-color:var(--accent); }
+  .day .dname { font-weight:600; font-size:14px; }
+  .day .ddate { color:var(--muted); font-size:12px; margin-top:2px; }
+  .day .dtime { font-size:15px; color:var(--accent-2); font-weight:500; }
+  .day .dtime.off { color:var(--muted); font-style:italic; font-weight:normal; }
+  .day .dtime.empty { color:var(--muted); font-weight:normal; }
+  .day .dhours { font-size:12px; color:var(--muted); margin-top:2px; }
+  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .stat { background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center; }
+  .stat .lbl { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:0.5px; }
+  .stat .val { color:var(--accent); font-size:24px; font-weight:700; margin-top:4px; }
+  .week-row { background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:10px 14px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; font-size:14px; }
+  .week-row:hover { border-color:var(--accent); }
+  .week-row .wr-range { color:var(--muted); font-size:12px; }
+  .week-row .wr-hours { color:var(--accent); font-weight:600; }
+  .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.7); display:none; align-items:center; justify-content:center; z-index:100; padding:16px; }
+  .modal-bg.show { display:flex; }
+  .modal { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:20px; max-width:400px; width:100%; max-height:90vh; overflow-y:auto; }
+  .modal h3 { margin:0 0 14px 0; font-size:16px; }
+  .modal .actions { display:flex; gap:8px; margin-top:16px; justify-content:flex-end; flex-wrap:wrap; }
+  .checkbox-row { display:flex; align-items:center; gap:8px; margin:12px 0; }
+  .checkbox-row input { width:auto; }
+  .file-input-wrap { border:1px dashed var(--border); border-radius:10px; padding:16px; text-align:center; margin-bottom:8px; }
+  .file-input-wrap input { width:auto; }
+  .warning { background:color-mix(in srgb,var(--warn) 12%,transparent); border:1px solid var(--warn); color:var(--warn); padding:8px 12px; border-radius:8px; font-size:12px; margin:8px 0; }
+  .error-text { color:var(--danger); font-size:12px; margin:6px 0; }
+  #ocrOutput { background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:10px; min-height:60px; white-space:pre-wrap; font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:11px; color:var(--text); max-height:220px; overflow-y:auto; }
+  #ocrProgress { color:var(--muted); font-size:12px; margin:6px 0; }
+  .empty { text-align:center; color:var(--muted); padding:24px 12px; font-size:13px; }
+  .splash { position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:200; flex-direction:column; gap:16px; }
+  .splash .logo-big { width:80px; height:60px; }
+  .splash .text { color:var(--muted); font-size:13px; }
+  .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--panel); border:1px solid var(--accent); color:var(--text); padding:10px 16px; border-radius:8px; font-size:13px; z-index:150; box-shadow:0 4px 12px rgba(0,0,0,0.3); transition:opacity 0.3s; opacity:0; pointer-events:none; }
+  .toast.show { opacity:1; }
   @media (max-width: 600px) {
-    .day { grid-template-columns: 1fr auto; }
-    .day .dinfo { grid-column: 1 / -1; }
-    .stats { grid-template-columns: 1fr; }
-    h1 { font-size: 17px; }
+    .day { grid-template-columns:1fr auto; }
+    .day .dinfo { grid-column:1/-1; }
+    .stats { grid-template-columns:1fr; }
+    h1 { font-size:17px; }
   }
 </style>
 </head>
 <body>
-<div class="container">
 
+<div class="splash" id="splash">
+  <svg class="logo-big" viewBox="0 0 200 90">
+    <g stroke="#14b8a6" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <path d="M 8 14 H 60 L 8 78 H 60"/>
+      <line x1="95" y1="44" x2="95" y2="78"/>
+      <path d="M 122 78 V 14 L 184 78 V 14"/>
+    </g>
+    <circle cx="95" cy="22" r="8" fill="#fbbf24"/>
+  </svg>
+  <div class="text">Connecting to cloud...</div>
+</div>
+
+<div class="container" id="appContainer" style="display:none;">
   <header>
     <div class="brand">
       <div class="logo">
@@ -273,15 +135,22 @@
       </div>
     </div>
     <div class="row">
-      <div class="user-pill" id="userPill" onclick="openProfileModal()">
+      <div class="user-pill" id="userPill" onclick="openMenuModal()">
         <span>👤</span>
         <strong id="userName">—</strong>
         <span id="ownerBadge" style="display:none;" class="owner-badge">OWNER</span>
       </div>
       <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="Theme">🌙</button>
-      <button class="icon-btn" onclick="openMenuModal()" title="Menu">⋮</button>
     </div>
   </header>
+
+  <div class="owner-bar" id="ownerBar" style="display:none;">
+    <span class="label">👑 OWNER</span>
+    <span style="font-size:13px;">Viewing:</span>
+    <select id="userSwitcher" onchange="switchViewingUser()" style="flex:1; min-width:160px;">
+      <option value="">Loading users...</option>
+    </select>
+  </div>
 
   <div class="tabs">
     <button class="tab active" data-tab="week" onclick="switchTab('week')">Week</button>
@@ -289,7 +158,6 @@
     <button class="tab" data-tab="import" onclick="switchTab('import')">Import</button>
   </div>
 
-  <!-- WEEK -->
   <div id="tab-week">
     <div class="panel">
       <div class="week-nav">
@@ -308,7 +176,6 @@
     </div>
   </div>
 
-  <!-- MONTH -->
   <div id="tab-month" style="display:none;">
     <div class="panel">
       <div class="week-nav">
@@ -328,7 +195,6 @@
     </div>
   </div>
 
-  <!-- IMPORT -->
   <div id="tab-import" style="display:none;">
     <div class="panel">
       <h2>Import schedule</h2>
@@ -341,10 +207,40 @@
       <div id="ocrOutput">No file processed yet.</div>
     </div>
   </div>
-
 </div>
 
-<!-- Edit shift -->
+<div class="modal-bg" id="authModal">
+  <div class="modal">
+    <div style="text-align:center; margin-bottom:10px;">
+      <svg width="60" height="40" viewBox="0 0 200 90">
+        <g stroke="#14b8a6" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none">
+          <path d="M 8 14 H 60 L 8 78 H 60"/>
+          <line x1="95" y1="44" x2="95" y2="78"/>
+          <path d="M 122 78 V 14 L 184 78 V 14"/>
+        </g>
+        <circle cx="95" cy="22" r="8" fill="#fbbf24"/>
+      </svg>
+    </div>
+    <h3 id="authTitle" style="text-align:center;">Sign in to ZiN Working</h3>
+    <div id="authNameRow" style="display:none;">
+      <label>Your name</label>
+      <input type="text" id="authName" placeholder="e.g. Mohammed Shajalal" />
+    </div>
+    <label style="margin-top:10px;">Email</label>
+    <input type="email" id="authEmail" placeholder="[email protected]" autocomplete="email" />
+    <label style="margin-top:10px;">Password</label>
+    <input type="password" id="authPassword" placeholder="At least 6 characters" autocomplete="current-password" />
+    <div class="error-text" id="authError" style="display:none;"></div>
+    <button class="primary" onclick="doAuth()" id="authSubmitBtn" style="width:100%; margin-top:14px;">Sign In</button>
+    <div style="text-align:center; margin-top:12px; font-size:13px;">
+      <a href="#" onclick="toggleAuthMode(); return false;" id="authToggleLink" style="color:var(--accent); text-decoration:none;">Don't have an account? Sign up</a>
+    </div>
+    <div style="text-align:center; margin-top:8px; font-size:12px;">
+      <a href="#" onclick="forgotPassword(); return false;" style="color:var(--muted); text-decoration:none;">Forgot password?</a>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="editModal">
   <div class="modal">
     <h3 id="editTitle">Edit shift</h3>
@@ -366,48 +262,21 @@
   </div>
 </div>
 
-<!-- Profile / Login -->
-<div class="modal-bg" id="profileModal">
-  <div class="modal">
-    <h3>Profile</h3>
-    <label>Your name</label>
-    <input type="text" id="nameInput" placeholder="Enter your name" />
-    <div id="ownerLoginSection" style="margin-top:12px;">
-      <label>Owner PIN (optional)</label>
-      <input type="password" id="pinInput" placeholder="Leave blank for guest mode" />
-      <div style="font-size:11px; color:var(--muted); margin-top:4px;">
-        Owner has full access to all profiles.
-      </div>
-    </div>
-    <div id="savedProfilesSection" style="margin-top:14px;">
-      <label>Saved profiles</label>
-      <div id="profilesList"></div>
-    </div>
-    <div class="actions">
-      <button onclick="closeProfileModal()">Cancel</button>
-      <button class="primary" onclick="loginProfile()">Continue</button>
-    </div>
-  </div>
-</div>
-
-<!-- Menu -->
 <div class="modal-bg" id="menuModal">
   <div class="modal">
     <h3>Menu</h3>
+    <div style="font-size:13px; color:var(--muted); margin-bottom:12px;">
+      Logged in as <strong style="color:var(--text);" id="menuUserEmail">—</strong>
+    </div>
     <div class="row" style="flex-direction:column; align-items:stretch; gap:8px;">
-      <button onclick="emailBackup()">📧 Email my data (backup)</button>
+      <button onclick="emailBackup()">📧 Email my data</button>
       <button onclick="downloadBackup()">⬇ Download backup (.json)</button>
-      <button onclick="openRestoreModal()">⬆ Restore from backup</button>
       <hr style="border-color:var(--border); margin:6px 0;"/>
+      <button onclick="signOutUser()">🚪 Sign out</button>
       <div id="ownerMenu" style="display:none;">
+        <hr style="border-color:var(--border); margin:6px 0;"/>
         <div style="font-size:11px; color:var(--accent); text-transform:uppercase; margin-bottom:6px;">Owner controls</div>
-        <button onclick="openOwnerPinSetup()" style="width:100%; margin-bottom:6px;">🔐 Change owner PIN</button>
-        <button onclick="logoutOwner()" style="width:100%; margin-bottom:6px;">Lock owner mode</button>
-        <button onclick="deleteCurrentProfile()" class="danger-text" style="width:100%; margin-bottom:6px;">Delete this profile</button>
-        <button onclick="clearEverything()" class="danger-text" style="width:100%;">Clear ALL data</button>
-      </div>
-      <div id="setupOwnerSection">
-        <button onclick="openOwnerPinSetup()" style="width:100%;">🔐 Set up Owner PIN</button>
+        <button onclick="deleteViewingUser()" class="danger-text" style="width:100%;">Delete viewing user</button>
       </div>
     </div>
     <div class="actions">
@@ -416,133 +285,86 @@
   </div>
 </div>
 
-<!-- Owner PIN setup -->
-<div class="modal-bg" id="pinSetupModal">
-  <div class="modal">
-    <h3>Owner PIN</h3>
-    <div class="info">
-      Setting a PIN makes this profile the Owner. Owner can view and edit all profiles' data.
-    </div>
-    <label>Set PIN (4+ characters)</label>
-    <input type="password" id="newPin" placeholder="New PIN" />
-    <label style="margin-top:10px;">Confirm PIN</label>
-    <input type="password" id="confirmPin" placeholder="Confirm PIN" />
-    <div class="actions">
-      <button onclick="closePinSetup()">Cancel</button>
-      <button class="primary" onclick="saveOwnerPin()">Save</button>
-    </div>
-  </div>
-</div>
+<div class="toast" id="toast"></div>
 
-<!-- Restore -->
-<div class="modal-bg" id="restoreModal">
-  <div class="modal">
-    <h3>Restore from backup</h3>
-    <label>Upload JSON file</label>
-    <input type="file" id="restoreFile" accept="application/json" />
-    <label style="margin-top:10px;">OR paste backup text</label>
-    <textarea id="restoreText" placeholder='Paste backup JSON here...'></textarea>
-    <div class="actions">
-      <button onclick="closeRestoreModal()">Cancel</button>
-      <button class="primary" onclick="doRestore()">Restore</button>
-    </div>
-  </div>
-</div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  signOut, onAuthStateChanged, sendPasswordResetEmail, updateProfile
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
+  collection, getDocs, onSnapshot, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBHQKiqcwanrR4-5uo8NiDFAs5WnwZ18aA",
+  authDomain: "zin-working.firebaseapp.com",
+  projectId: "zin-working",
+  storageBucket: "zin-working.firebasestorage.app",
+  messagingSenderId: "988419444088",
+  appId: "1:988419444088:web:5098c942a905f284534c8d"
+};
+const OWNER_EMAIL = "[email protected]";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+window.fbAuth = auth;
+window.fbDb = db;
+window.fbFns = {
+  createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  signOut, sendPasswordResetEmail, updateProfile,
+  doc, getDoc, setDoc, updateDoc, deleteDoc,
+  collection, getDocs, onSnapshot, serverTimestamp,
+  OWNER_EMAIL
+};
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    window.currentAuthUser = user;
+    window.isOwner = (user.email === OWNER_EMAIL);
+    if(window.onUserSignedIn) await window.onUserSignedIn();
+  } else {
+    window.currentAuthUser = null;
+    window.isOwner = false;
+    if(window.onUserSignedOut) window.onUserSignedOut();
+  }
+});
+</script>
 
 <script>
 "use strict";
-
-const K_PROFILES = "zw_profiles_v2";   // { [profileName]: { shifts: {...} } }
-const K_ACTIVE = "zw_active_v2";       // current profile name
-const K_OWNER = "zw_owner_v2";         // { name, pinHash }
-const K_OWNER_SESSION = "zw_owner_session_v2"; // "1" if unlocked this session
-const K_THEME = "zw_theme_v2";
-
+const K_THEME = "zw_theme_v3";
 const DAY_FULL = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 
 let currentWeekStart = null;
 let currentMonth = null;
 let editIndex = -1;
+let viewingUid = null;
+let viewingData = null;
+let allUsers = [];
+let unsubscribeListener = null;
+let authMode = "signin";
 
-// ---------- utils ----------
 const pad = n => String(n).padStart(2,"0");
 const fmtDate = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const fmtDisp = d => `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
 const parseDate = s => { const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); };
 const addDays = (d,n) => { const x=new Date(d); x.setDate(x.getDate()+n); return x; };
-function getMonday(d){
-  const x = new Date(d); const day = x.getDay();
-  x.setDate(x.getDate() + (day===0 ? -6 : 1-day));
-  x.setHours(0,0,0,0); return x;
-}
-function hoursBetween(s,e){
-  if(!s||!e) return 0;
-  const [sh,sm]=s.split(":").map(Number);
-  const [eh,em]=e.split(":").map(Number);
-  let m = (eh*60+em)-(sh*60+sm);
-  if(m<0) m+=1440;
-  return m/60;
+function getMonday(d){ const x=new Date(d); const day=x.getDay(); x.setDate(x.getDate()+(day===0?-6:1-day)); x.setHours(0,0,0,0); return x; }
+function hoursBetween(s,e){ if(!s||!e) return 0; const [sh,sm]=s.split(":").map(Number); const [eh,em]=e.split(":").map(Number); let m=(eh*60+em)-(sh*60+sm); if(m<0) m+=1440; return m/60; }
+
+function showToast(msg, ms=2500){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.classList.remove("show"), ms);
 }
 
-// Simple hash for PIN (not crypto-secure, but enough for casual use)
-function simpleHash(str){
-  let h = 0;
-  for(let i=0; i<str.length; i++){
-    h = ((h<<5)-h) + str.charCodeAt(i);
-    h |= 0;
-  }
-  return h.toString(36);
-}
-
-// ---------- storage ----------
-function loadProfiles(){ try{ return JSON.parse(localStorage.getItem(K_PROFILES)||"{}"); } catch(e){ return {}; } }
-function saveProfiles(p){ localStorage.setItem(K_PROFILES, JSON.stringify(p)); }
-function getActiveProfile(){
-  return localStorage.getItem(K_ACTIVE) || "";
-}
-function setActiveProfile(name){
-  localStorage.setItem(K_ACTIVE, name);
-  const profiles = loadProfiles();
-  if(!profiles[name]) profiles[name] = { shifts: {} };
-  saveProfiles(profiles);
-}
-function getCurrentShifts(){
-  const profiles = loadProfiles();
-  const active = getActiveProfile();
-  if(!active || !profiles[active]) return {};
-  return profiles[active].shifts || {};
-}
-function setCurrentShifts(shifts){
-  const profiles = loadProfiles();
-  const active = getActiveProfile();
-  if(!active) return;
-  if(!profiles[active]) profiles[active] = {};
-  profiles[active].shifts = shifts;
-  saveProfiles(profiles);
-}
-function getWeek(wStart){
-  const all = getCurrentShifts();
-  return all[fmtDate(wStart)] || Array.from({length:7},()=>({off:false,start:"",end:""}));
-}
-function setWeek(wStart, arr){
-  const all = getCurrentShifts();
-  all[fmtDate(wStart)] = arr;
-  setCurrentShifts(all);
-}
-
-// ---------- owner ----------
-function getOwner(){ try{ return JSON.parse(localStorage.getItem(K_OWNER)||"null"); } catch(e){ return null; } }
-function isOwnerUnlocked(){
-  const owner = getOwner();
-  if(!owner) return false;
-  return sessionStorage.getItem(K_OWNER_SESSION) === "1" && getActiveProfile() === owner.name;
-}
-function setOwnerUnlocked(v){
-  if(v) sessionStorage.setItem(K_OWNER_SESSION, "1");
-  else sessionStorage.removeItem(K_OWNER_SESSION);
-}
-
-// ---------- theme ----------
 function applyTheme(t){
   document.documentElement.setAttribute("data-theme", t);
   document.getElementById("themeBtn").textContent = t==="light" ? "☀️" : "🌙";
@@ -552,9 +374,211 @@ function toggleTheme(){
   const cur = document.documentElement.getAttribute("data-theme") || "dark";
   applyTheme(cur==="dark" ? "light" : "dark");
 }
+window.toggleTheme = toggleTheme;
 
-// ---------- tabs ----------
-function switchTab(name){
+window.onUserSignedIn = async function(){
+  const user = window.currentAuthUser;
+  const fns = window.fbFns;
+  document.getElementById("splash").style.display = "none";
+  document.getElementById("appContainer").style.display = "block";
+  document.getElementById("authModal").classList.remove("show");
+
+  const userRef = fns.doc(window.fbDb, "users", user.uid);
+  const snap = await fns.getDoc(userRef);
+  if(!snap.exists()){
+    await fns.setDoc(userRef, {
+      name: user.displayName || (user.email.split("@")[0]),
+      email: user.email,
+      createdAt: fns.serverTimestamp(),
+      shifts: {}
+    });
+  }
+
+  if(window.isOwner){
+    document.getElementById("ownerBadge").style.display = "inline-block";
+    document.getElementById("userPill").classList.add("owner");
+    document.getElementById("ownerBar").style.display = "flex";
+    await loadAllUsers();
+  } else {
+    document.getElementById("ownerBadge").style.display = "none";
+    document.getElementById("userPill").classList.remove("owner");
+    document.getElementById("ownerBar").style.display = "none";
+  }
+
+  await switchViewingTo(user.uid);
+};
+
+window.onUserSignedOut = function(){
+  if(unsubscribeListener){ unsubscribeListener(); unsubscribeListener = null; }
+  viewingUid = null;
+  viewingData = null;
+  document.getElementById("splash").style.display = "none";
+  document.getElementById("appContainer").style.display = "none";
+  document.getElementById("authModal").classList.add("show");
+};
+
+async function loadAllUsers(){
+  const fns = window.fbFns;
+  try {
+    const snap = await fns.getDocs(fns.collection(window.fbDb, "users"));
+    allUsers = [];
+    snap.forEach(d => { allUsers.push({ uid: d.id, ...d.data() }); });
+    populateUserSwitcher();
+  } catch(e){
+    console.error("Failed to load users:", e);
+    showToast("Could not load users list");
+  }
+}
+
+function populateUserSwitcher(){
+  const sel = document.getElementById("userSwitcher");
+  sel.innerHTML = "";
+  allUsers.forEach(u => {
+    const opt = document.createElement("option");
+    opt.value = u.uid;
+    const isOwnerProfile = u.email === window.fbFns.OWNER_EMAIL;
+    opt.textContent = `${u.name || u.email}${isOwnerProfile ? " (Owner — You)" : ""}`;
+    if(u.uid === viewingUid) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+async function switchViewingTo(uid){
+  const fns = window.fbFns;
+  if(unsubscribeListener){ unsubscribeListener(); }
+  viewingUid = uid;
+  const userRef = fns.doc(window.fbDb, "users", uid);
+  unsubscribeListener = fns.onSnapshot(userRef, (snap) => {
+    if(snap.exists()){
+      viewingData = snap.data();
+      refreshUserPill();
+      if(currentWeekStart) renderWeek();
+      if(document.getElementById("tab-month").style.display === "block") renderMonth();
+    }
+  }, (err) => {
+    console.error("Listen error:", err);
+    showToast("Sync error: " + err.message);
+  });
+}
+
+window.switchViewingUser = function(){
+  const uid = document.getElementById("userSwitcher").value;
+  if(uid && uid !== viewingUid){
+    switchViewingTo(uid);
+  }
+};
+
+function refreshUserPill(){
+  if(!viewingData) return;
+  const name = viewingData.name || viewingData.email || "User";
+  document.getElementById("userName").textContent = name;
+  document.getElementById("menuUserEmail").textContent =
+    window.currentAuthUser ? window.currentAuthUser.email : "";
+}
+
+window.toggleAuthMode = function(){
+  authMode = authMode === "signin" ? "signup" : "signin";
+  document.getElementById("authNameRow").style.display = authMode === "signup" ? "block" : "none";
+  document.getElementById("authTitle").textContent = authMode === "signup" ? "Create your account" : "Sign in to ZiN Working";
+  document.getElementById("authSubmitBtn").textContent = authMode === "signup" ? "Sign Up" : "Sign In";
+  document.getElementById("authToggleLink").textContent = authMode === "signup" ? "Already have an account? Sign in" : "Don't have an account? Sign up";
+  document.getElementById("authError").style.display = "none";
+};
+
+window.doAuth = async function(){
+  const fns = window.fbFns;
+  const email = document.getElementById("authEmail").value.trim();
+  const password = document.getElementById("authPassword").value;
+  const name = document.getElementById("authName").value.trim();
+  const errEl = document.getElementById("authError");
+  errEl.style.display = "none";
+
+  if(!email || !password){
+    errEl.textContent = "Email and password are required.";
+    errEl.style.display = "block"; return;
+  }
+  if(authMode === "signup" && !name){
+    errEl.textContent = "Please enter your name.";
+    errEl.style.display = "block"; return;
+  }
+
+  const submitBtn = document.getElementById("authSubmitBtn");
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Please wait...";
+
+  try {
+    if(authMode === "signup"){
+      const cred = await fns.createUserWithEmailAndPassword(window.fbAuth, email, password);
+      await fns.updateProfile(cred.user, { displayName: name });
+      await fns.setDoc(fns.doc(window.fbDb, "users", cred.user.uid), {
+        name: name, email: email,
+        createdAt: fns.serverTimestamp(),
+        shifts: {}
+      });
+    } else {
+      await fns.signInWithEmailAndPassword(window.fbAuth, email, password);
+    }
+  } catch(e){
+    let msg = e.message || "Authentication failed";
+    if(e.code === "auth/email-already-in-use") msg = "Email already registered. Try signing in.";
+    if(e.code === "auth/invalid-email") msg = "Invalid email address.";
+    if(e.code === "auth/weak-password") msg = "Password must be at least 6 characters.";
+    if(e.code === "auth/wrong-password" || e.code === "auth/invalid-credential") msg = "Wrong email or password.";
+    if(e.code === "auth/user-not-found") msg = "No account with this email. Sign up first.";
+    errEl.textContent = msg;
+    errEl.style.display = "block";
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = authMode === "signup" ? "Sign Up" : "Sign In";
+  }
+};
+
+window.forgotPassword = async function(){
+  const fns = window.fbFns;
+  const email = document.getElementById("authEmail").value.trim();
+  if(!email){
+    document.getElementById("authError").textContent = "Enter your email first, then click Forgot password.";
+    document.getElementById("authError").style.display = "block"; return;
+  }
+  try {
+    await fns.sendPasswordResetEmail(window.fbAuth, email);
+    showToast("Password reset email sent to " + email);
+  } catch(e){
+    document.getElementById("authError").textContent = e.message;
+    document.getElementById("authError").style.display = "block";
+  }
+};
+
+window.signOutUser = async function(){
+  await window.fbFns.signOut(window.fbAuth);
+  closeMenuModal();
+};
+
+function getWeek(weekStart){
+  if(!viewingData) return Array.from({length:7}, ()=>({off:false,start:"",end:""}));
+  const key = fmtDate(weekStart);
+  return (viewingData.shifts && viewingData.shifts[key])
+    || Array.from({length:7}, ()=>({off:false,start:"",end:""}));
+}
+
+async function setWeek(weekStart, arr){
+  const fns = window.fbFns;
+  if(!viewingUid) return;
+  const key = fmtDate(weekStart);
+  if(!viewingData) viewingData = { shifts: {} };
+  if(!viewingData.shifts) viewingData.shifts = {};
+  viewingData.shifts[key] = arr;
+  try {
+    await fns.updateDoc(fns.doc(window.fbDb, "users", viewingUid), {
+      [`shifts.${key}`]: arr
+    });
+  } catch(e){
+    console.error("Save failed:", e);
+    showToast("Save failed: " + e.message);
+  }
+}
+
+window.switchTab = function(name){
   ["week","month","import"].forEach(t=>{
     document.getElementById("tab-"+t).style.display = (t===name)?"block":"none";
   });
@@ -562,56 +586,44 @@ function switchTab(name){
     b.classList.toggle("active", b.dataset.tab===name);
   });
   if(name==="month") renderMonth();
-}
+};
 
-// ---------- week ----------
 function renderWeek(){
   const arr = getWeek(currentWeekStart);
   const wEnd = addDays(currentWeekStart, 6);
   document.getElementById("weekTitle").textContent = `${fmtDisp(currentWeekStart)} — ${fmtDisp(wEnd)}`;
   document.getElementById("jumpDate").value = fmtDate(currentWeekStart);
-
   const today = new Date(); today.setHours(0,0,0,0);
   const container = document.getElementById("weekDays");
   container.innerHTML = "";
   let total = 0;
-
   arr.forEach((s,i)=>{
     const d = addDays(currentWeekStart, i);
     const isToday = d.getTime()===today.getTime();
     const hrs = (s.off||!s.start||!s.end) ? 0 : hoursBetween(s.start,s.end);
     total += hrs;
-
     let timeEl;
     if(s.off) timeEl = `<div class="dtime off">OFF</div>`;
     else if(s.start && s.end) timeEl = `<div class="dtime">${s.start} – ${s.end}</div><div class="dhours">${hrs}h</div>`;
     else timeEl = `<div class="dtime empty">— not set —</div>`;
-
     const card = document.createElement("div");
     card.className = "day" + (isToday?" today":"");
-    card.innerHTML = `
-      <div>
-        <div class="dname">${DAY_FULL[i]}</div>
-        <div class="ddate">${fmtDisp(d)}</div>
-      </div>
-      <div class="dinfo">${timeEl}</div>
-      <button onclick="openEdit(${i})">Edit</button>
-    `;
+    card.innerHTML = `<div><div class="dname">${DAY_FULL[i]}</div><div class="ddate">${fmtDisp(d)}</div></div><div class="dinfo">${timeEl}</div><button onclick="openEdit(${i})">Edit</button>`;
     container.appendChild(card);
   });
   document.getElementById("weekTotal").textContent = total.toFixed(1);
 }
-function changeWeek(dir){ currentWeekStart = addDays(currentWeekStart, 7*dir); renderWeek(); }
-function goToToday(){ currentWeekStart = getMonday(new Date()); renderWeek(); }
-function jumpToDate(){
+
+window.changeWeek = function(dir){ currentWeekStart = addDays(currentWeekStart, 7*dir); renderWeek(); };
+window.goToToday = function(){ currentWeekStart = getMonday(new Date()); renderWeek(); };
+window.jumpToDate = function(){
   const v = document.getElementById("jumpDate").value;
   if(!v) return;
   currentWeekStart = getMonday(parseDate(v));
   renderWeek();
-}
+};
 
-// ---------- edit ----------
-function openEdit(i){
+window.openEdit = function(i){
   editIndex = i;
   const arr = getWeek(currentWeekStart);
   const s = arr[i];
@@ -622,89 +634,31 @@ function openEdit(i){
   document.getElementById("editEnd").value = s.end || "";
   toggleOff();
   document.getElementById("editModal").classList.add("show");
-}
-function toggleOff(){
-  document.getElementById("editTimes").style.display =
-    document.getElementById("editOff").checked ? "none" : "block";
-}
-function closeEdit(){ document.getElementById("editModal").classList.remove("show"); }
-function saveEdit(){
+};
+window.toggleOff = function(){
+  document.getElementById("editTimes").style.display = document.getElementById("editOff").checked ? "none" : "block";
+};
+window.closeEdit = function(){ document.getElementById("editModal").classList.remove("show"); };
+window.saveEdit = async function(){
   const off = document.getElementById("editOff").checked;
   const start = document.getElementById("editStart").value;
   const end = document.getElementById("editEnd").value;
   if(!off && (!start || !end)){ alert("Enter both times, or mark as day off."); return; }
   const arr = getWeek(currentWeekStart);
   arr[editIndex] = off ? {off:true,start:"",end:""} : {off:false,start,end};
-  setWeek(currentWeekStart, arr);
-  closeEdit(); renderWeek();
-}
-function clearDay(){
+  closeEdit();
+  await setWeek(currentWeekStart, arr);
+  renderWeek();
+  showToast("Saved to cloud ✓");
+};
+window.clearDay = async function(){
   const arr = getWeek(currentWeekStart);
   arr[editIndex] = {off:false,start:"",end:""};
-  setWeek(currentWeekStart, arr);
-  closeEdit(); renderWeek();
-}
-
-// ---------- profile ----------
-function refreshUserPill(){
-  const name = getActiveProfile() || "Guest";
-  document.getElementById("userName").textContent = name;
-  const isOwner = isOwnerUnlocked();
-  document.getElementById("ownerBadge").style.display = isOwner ? "inline-block" : "none";
-  document.getElementById("userPill").classList.toggle("owner", isOwner);
-}
-function openProfileModal(){
-  const owner = getOwner();
-  const profiles = loadProfiles();
-  document.getElementById("nameInput").value = getActiveProfile() || "";
-  document.getElementById("pinInput").value = "";
-  document.getElementById("ownerLoginSection").style.display = owner ? "block" : "none";
-
-  // Show saved profile list (visible only if owner mode OR no profiles set OR you can see your own)
-  const listEl = document.getElementById("profilesList");
-  listEl.innerHTML = "";
-  const names = Object.keys(profiles);
-  const showAll = isOwnerUnlocked() || !owner;
-  const toShow = showAll ? names : names.filter(n => n === getActiveProfile());
-  if(toShow.length === 0){
-    listEl.innerHTML = `<div class="empty" style="padding:8px;">No saved profiles yet.</div>`;
-  } else {
-    toShow.forEach(n => {
-      const item = document.createElement("div");
-      item.className = "profile-item" + (n===getActiveProfile()?" active":"");
-      const isOwnerProfile = owner && owner.name === n;
-      item.innerHTML = `<span>${n}${isOwnerProfile?' <span class="owner-badge">OWNER</span>':''}</span><span style="color:var(--muted);font-size:12px;">tap</span>`;
-      item.onclick = () => { document.getElementById("nameInput").value = n; };
-      listEl.appendChild(item);
-    });
-  }
-  document.getElementById("profileModal").classList.add("show");
-}
-function closeProfileModal(){ document.getElementById("profileModal").classList.remove("show"); }
-function loginProfile(){
-  const name = document.getElementById("nameInput").value.trim();
-  const pin = document.getElementById("pinInput").value;
-  if(!name){ alert("Please enter a name."); return; }
-  const owner = getOwner();
-
-  if(pin){
-    // Try owner login
-    if(!owner){ alert("No owner is set up. Use Menu → 'Set up Owner PIN'."); return; }
-    if(simpleHash(pin) !== owner.pinHash){ alert("Wrong PIN."); return; }
-    setOwnerUnlocked(true);
-    setActiveProfile(owner.name); // Owner unlock activates owner profile regardless of name typed
-  } else {
-    setOwnerUnlocked(false);
-    setActiveProfile(name);
-  }
-  refreshUserPill();
-  closeProfileModal();
-  currentWeekStart = getMonday(new Date());
-  currentMonth = new Date(currentWeekStart.getFullYear(), currentWeekStart.getMonth(), 1);
+  closeEdit();
+  await setWeek(currentWeekStart, arr);
   renderWeek();
-}
+};
 
-// ---------- month ----------
 function renderMonth(){
   if(!currentMonth){
     const r = currentWeekStart || new Date();
@@ -714,8 +668,7 @@ function renderMonth(){
   const month = currentMonth.getMonth();
   document.getElementById("monthTitle").textContent =
     currentMonth.toLocaleString("en-US",{month:"long",year:"numeric"});
-
-  const all = getCurrentShifts();
+  const all = (viewingData && viewingData.shifts) || {};
   let totalShifts = 0, totalHours = 0;
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month+1, 0);
@@ -723,7 +676,6 @@ function renderMonth(){
   const mondays = [];
   let m = new Date(firstMonday);
   while(m <= lastDay){ mondays.push(new Date(m)); m = addDays(m,7); }
-
   const wc = document.getElementById("monthWeeks");
   wc.innerHTML = "";
   mondays.forEach(mon => {
@@ -735,9 +687,7 @@ function renderMonth(){
         const d = addDays(mon,i);
         if(d.getMonth()===month && d.getFullYear()===year){
           const s = arr[i];
-          if(s && !s.off && s.start && s.end){
-            wS++; wH += hoursBetween(s.start,s.end);
-          }
+          if(s && !s.off && s.start && s.end){ wS++; wH += hoursBetween(s.start,s.end); }
         }
       }
     }
@@ -745,180 +695,78 @@ function renderMonth(){
     const wEnd = addDays(mon,6);
     const row = document.createElement("div");
     row.className = "week-row";
-    row.onclick = () => { currentWeekStart = new Date(mon); switchTab("week"); renderWeek(); };
-    row.innerHTML = `
-      <div>
-        <div>Week of ${fmtDisp(mon)}</div>
-        <div class="wr-range">${wS} shift${wS===1?"":"s"} · ${fmtDisp(mon)} – ${fmtDisp(wEnd)}</div>
-      </div>
-      <div class="wr-hours">${wH.toFixed(1)}h</div>
-    `;
+    row.onclick = () => { currentWeekStart = new Date(mon); window.switchTab("week"); renderWeek(); };
+    row.innerHTML = `<div><div>Week of ${fmtDisp(mon)}</div><div class="wr-range">${wS} shift${wS===1?"":"s"} · ${fmtDisp(mon)} – ${fmtDisp(wEnd)}</div></div><div class="wr-hours">${wH.toFixed(1)}h</div>`;
     wc.appendChild(row);
   });
-
   document.getElementById("mShifts").textContent = totalShifts;
   document.getElementById("mHours").textContent = totalHours.toFixed(1);
   document.getElementById("mAvg").textContent = totalShifts ? (totalHours/totalShifts).toFixed(1) : "0";
 }
-function changeMonth(dir){
+window.changeMonth = function(dir){
   currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth()+dir, 1);
   renderMonth();
-}
+};
 
-// ---------- menu / backup ----------
-function openMenuModal(){
-  document.getElementById("ownerMenu").style.display = isOwnerUnlocked() ? "block" : "none";
-  document.getElementById("setupOwnerSection").style.display = getOwner() ? "none" : "block";
+window.openMenuModal = function(){
+  document.getElementById("ownerMenu").style.display = window.isOwner ? "block" : "none";
   document.getElementById("menuModal").classList.add("show");
-}
-function closeMenuModal(){ document.getElementById("menuModal").classList.remove("show"); }
+};
+window.closeMenuModal = function(){ document.getElementById("menuModal").classList.remove("show"); };
 
 function buildBackupData(){
-  // Owner backs up everything; regular user backs up only their profile
-  const profiles = loadProfiles();
-  const active = getActiveProfile();
-  let payload;
-  if(isOwnerUnlocked()){
-    payload = { all: profiles, owner: getOwner(), exportedBy: "owner", exportedAt: new Date().toISOString() };
-  } else {
-    payload = { profile: active, shifts: (profiles[active] && profiles[active].shifts) || {}, exportedAt: new Date().toISOString() };
-  }
-  return JSON.stringify(payload, null, 2);
+  return JSON.stringify({
+    profile: viewingData && viewingData.name,
+    email: viewingData && viewingData.email,
+    shifts: (viewingData && viewingData.shifts) || {},
+    exportedAt: new Date().toISOString()
+  }, null, 2);
 }
 
-function downloadBackup(){
+window.downloadBackup = function(){
   const data = buildBackupData();
   const blob = new Blob([data], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `zin-working-backup-${fmtDate(new Date())}.json`;
+  a.download = `zin-working-${fmtDate(new Date())}.json`;
   a.click();
   URL.revokeObjectURL(url);
   closeMenuModal();
-}
+};
 
-function emailBackup(){
+window.emailBackup = function(){
   const data = buildBackupData();
-  const subject = encodeURIComponent("ZiN Working — Schedule Backup " + fmtDate(new Date()));
-  const body = encodeURIComponent(
-    "Your ZiN Working schedule backup is below.\n\n" +
-    "To restore: open the app → Menu → 'Restore from backup' → paste the JSON between the markers.\n\n" +
-    "===== BACKUP START =====\n" + data + "\n===== BACKUP END ====="
-  );
-  // Large mailto can be blocked; provide fallback
+  const subject = encodeURIComponent("ZiN Working — Backup " + fmtDate(new Date()));
+  const body = encodeURIComponent("Backup:\n\n===== BACKUP START =====\n" + data + "\n===== BACKUP END =====");
   const mailto = `mailto:?subject=${subject}&body=${body}`;
   if(mailto.length > 7000){
-    if(confirm("Backup is large. Download as file instead?")){
-      downloadBackup();
-    }
+    if(confirm("Backup is large. Download instead?")) downloadBackup();
     return;
   }
   window.location.href = mailto;
   closeMenuModal();
-}
+};
 
-function openRestoreModal(){
-  document.getElementById("restoreText").value = "";
-  document.getElementById("restoreFile").value = "";
-  closeMenuModal();
-  document.getElementById("restoreModal").classList.add("show");
-}
-function closeRestoreModal(){ document.getElementById("restoreModal").classList.remove("show"); }
-
-function doRestore(){
-  const file = document.getElementById("restoreFile").files[0];
-  const text = document.getElementById("restoreText").value.trim();
-  const apply = (raw) => {
-    try {
-      // Strip surrounding email markers if present
-      const m = raw.match(/=====\s*BACKUP START\s*=====([\s\S]*?)=====\s*BACKUP END\s*=====/i);
-      const json = m ? m[1].trim() : raw;
-      const data = JSON.parse(json);
-      if(data.all && typeof data.all === "object"){
-        if(!confirm("This backup contains ALL profiles. Replace all current data?")) return;
-        saveProfiles(data.all);
-      } else if(data.profile){
-        const profiles = loadProfiles();
-        profiles[data.profile] = { shifts: data.shifts || {} };
-        saveProfiles(profiles);
-        setActiveProfile(data.profile);
-      } else {
-        alert("Unknown backup format."); return;
-      }
-      alert("Restore complete!");
-      closeRestoreModal();
-      refreshUserPill();
-      renderWeek();
-    } catch(e){
-      alert("Could not parse backup: " + e.message);
-    }
-  };
-  if(file){
-    const r = new FileReader();
-    r.onload = e => apply(e.target.result);
-    r.readAsText(file);
-  } else if(text){
-    apply(text);
-  } else {
-    alert("Choose a file or paste backup text.");
+window.deleteViewingUser = async function(){
+  const fns = window.fbFns;
+  if(!window.isOwner) return;
+  if(viewingUid === window.currentAuthUser.uid){
+    alert("You can't delete yourself. Choose a different user first.");
+    return;
   }
-}
+  if(!confirm("Delete this profile and all its data?")) return;
+  try {
+    await fns.deleteDoc(fns.doc(window.fbDb, "users", viewingUid));
+    showToast("Profile deleted");
+    closeMenuModal();
+    await loadAllUsers();
+    await switchViewingTo(window.currentAuthUser.uid);
+  } catch(e){
+    showToast("Delete failed: " + e.message);
+  }
+};
 
-// ---------- owner PIN ----------
-function openOwnerPinSetup(){
-  document.getElementById("newPin").value = "";
-  document.getElementById("confirmPin").value = "";
-  closeMenuModal();
-  document.getElementById("pinSetupModal").classList.add("show");
-}
-function closePinSetup(){ document.getElementById("pinSetupModal").classList.remove("show"); }
-function saveOwnerPin(){
-  const p1 = document.getElementById("newPin").value;
-  const p2 = document.getElementById("confirmPin").value;
-  if(p1.length < 4){ alert("PIN must be at least 4 characters."); return; }
-  if(p1 !== p2){ alert("PINs don't match."); return; }
-  const active = getActiveProfile();
-  if(!active){ alert("Please log in with your name first."); return; }
-  localStorage.setItem(K_OWNER, JSON.stringify({ name: active, pinHash: simpleHash(p1) }));
-  setOwnerUnlocked(true);
-  closePinSetup();
-  refreshUserPill();
-  alert(`Owner mode activated for "${active}". Keep your PIN safe!`);
-}
-function logoutOwner(){
-  setOwnerUnlocked(false);
-  refreshUserPill();
-  closeMenuModal();
-}
-
-function deleteCurrentProfile(){
-  if(!isOwnerUnlocked()){ alert("Only owner can delete profiles."); return; }
-  const active = getActiveProfile();
-  const owner = getOwner();
-  if(active === owner.name){ alert("Can't delete the owner profile this way."); return; }
-  if(!confirm(`Delete profile "${active}" and all its data?`)) return;
-  const profiles = loadProfiles();
-  delete profiles[active];
-  saveProfiles(profiles);
-  setActiveProfile(owner.name);
-  refreshUserPill();
-  renderWeek();
-  closeMenuModal();
-}
-
-function clearEverything(){
-  if(!isOwnerUnlocked()){ alert("Only owner can clear all data."); return; }
-  if(!confirm("Delete ALL profiles, shifts, and owner setup? This cannot be undone.")) return;
-  if(!confirm("Are you absolutely sure?")) return;
-  localStorage.removeItem(K_PROFILES);
-  localStorage.removeItem(K_ACTIVE);
-  localStorage.removeItem(K_OWNER);
-  setOwnerUnlocked(false);
-  location.reload();
-}
-
-// ---------- import (PDF / image OCR) ----------
 if(typeof pdfjsLib !== "undefined"){
   pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 }
@@ -945,7 +793,7 @@ async function processPDF(file, progress, output){
       const c = await page.getTextContent();
       fullText += c.items.map(i=>i.str).join(" ") + "\n";
     }
-    if(fullText.trim().length > 30){ finishExtraction(fullText, output, progress); }
+    if(fullText.trim().length > 30) finishExtraction(fullText, output, progress);
     else {
       progress.textContent = "PDF has no text — running OCR...";
       let txt = "";
@@ -972,7 +820,7 @@ function processImage(file, progress, output){
 }
 function finishExtraction(text, output, progress){
   progress.textContent = "Done.";
-  const name = getActiveProfile() || "";
+  const name = (viewingData && viewingData.name) || "";
   const lines = text.split(/\r?\n/).filter(l=>l.trim().length);
   const nameLower = name.toLowerCase();
   const nameParts = nameLower.split(/\s+/).filter(p=>p.length>3);
@@ -997,28 +845,19 @@ function finishExtraction(text, output, progress){
   output.textContent = out;
 }
 
-// ---------- init ----------
 function init(){
   applyTheme(localStorage.getItem(K_THEME) || "dark");
-  const active = getActiveProfile();
-  if(!active){
-    // First time — open profile modal
-    setTimeout(openProfileModal, 200);
-  }
   currentWeekStart = getMonday(new Date());
   currentMonth = new Date(currentWeekStart.getFullYear(), currentWeekStart.getMonth(), 1);
   document.getElementById("fileUpload").addEventListener("change", handleFileUpload);
-  refreshUserPill();
-  renderWeek();
+  setTimeout(() => {
+    if(!window.currentAuthUser){
+      document.getElementById("splash").style.display = "none";
+      document.getElementById("authModal").classList.add("show");
+    }
+  }, 3000);
 }
 document.addEventListener("DOMContentLoaded", init);
-
-// Register service worker if available (will silently fail when opened as file://)
-if("serviceWorker" in navigator){
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js").catch(()=>{});
-  });
-}
 </script>
 </body>
 </html>
