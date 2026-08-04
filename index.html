@@ -185,8 +185,18 @@
       </div>
       <div class="stats">
         <div class="stat"><div class="lbl">Shifts</div><div class="val" id="mShifts">0</div></div>
-        <div class="stat"><div class="lbl">Hours</div><div class="val" id="mHours">0</div></div>
+        <div class="stat"><div class="lbl">Total Hours</div><div class="val" id="mHours">0</div></div>
         <div class="stat"><div class="lbl">Avg/shift</div><div class="val" id="mAvg">0</div></div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+        <div class="stat" style="border-color:var(--accent-2);">
+          <div class="lbl">🌟 Sunday Shifts</div>
+          <div class="val" id="mSundayShifts" style="color:var(--accent-2);">0</div>
+        </div>
+        <div class="stat" style="border-color:var(--accent-2);">
+          <div class="lbl">🌟 Sunday Hours</div>
+          <div class="val" id="mSundayHours" style="color:var(--accent-2);">0</div>
+        </div>
       </div>
     </div>
     <div class="panel">
@@ -669,7 +679,7 @@ function renderMonth(){
   document.getElementById("monthTitle").textContent =
     currentMonth.toLocaleString("en-US",{month:"long",year:"numeric"});
   const all = (viewingData && viewingData.shifts) || {};
-  let totalShifts = 0, totalHours = 0;
+  let totalShifts = 0, totalHours = 0, totalSundayShifts = 0, totalSundayHours = 0;
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month+1, 0);
   const firstMonday = getMonday(firstDay);
@@ -687,7 +697,10 @@ function renderMonth(){
         const d = addDays(mon,i);
         if(d.getMonth()===month && d.getFullYear()===year){
           const s = arr[i];
-          if(s && !s.off && s.start && s.end){ wS++; wH += hoursBetween(s.start,s.end); }
+          if(s && !s.off && s.start && s.end){
+            wS++; wH += hoursBetween(s.start,s.end);
+            if(i === 6){ totalSundayShifts++; totalSundayHours += hoursBetween(s.start,s.end); }
+          }
         }
       }
     }
@@ -702,6 +715,8 @@ function renderMonth(){
   document.getElementById("mShifts").textContent = totalShifts;
   document.getElementById("mHours").textContent = totalHours.toFixed(1);
   document.getElementById("mAvg").textContent = totalShifts ? (totalHours/totalShifts).toFixed(1) : "0";
+  document.getElementById("mSundayShifts").textContent = totalSundayShifts;
+  document.getElementById("mSundayHours").textContent = totalSundayHours.toFixed(1);
 }
 window.changeMonth = function(dir){
   currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth()+dir, 1);
