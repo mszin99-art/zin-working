@@ -208,13 +208,45 @@
   <div id="tab-import" style="display:none;">
     <div class="panel">
       <h2>Import schedule</h2>
-      <div class="file-input-wrap">
-        <div style="margin-bottom:8px; font-size:13px; color:var(--muted);">PDF, JPG or PNG</div>
-        <input type="file" id="fileUpload" accept="image/png,image/jpeg,image/jpg,application/pdf" />
+
+      <!-- Step 1: Name filter -->
+      <div style="margin-bottom:12px;">
+        <label style="font-size:13px; color:var(--text); font-weight:600; display:block; margin-bottom:6px;">
+          👤 Step 1 — Name to extract shifts for:
+        </label>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <input type="text" id="importName" placeholder="e.g. Mohammed Shajalal Zilani" style="flex:1; min-width:200px;" />
+          <button onclick="useMyName()" style="white-space:nowrap; background:var(--accent); color:var(--bg); border-color:var(--accent); font-weight:600;">Use my name</button>
+        </div>
+        <div style="font-size:11px; color:var(--muted); margin-top:4px;">Only shifts matching this name will be extracted from the schedule.</div>
       </div>
+
+      <!-- Step 2: File upload -->
+      <div style="margin-bottom:8px;">
+        <label style="font-size:13px; color:var(--text); font-weight:600; display:block; margin-bottom:6px;">📄 Step 2 — Upload schedule file:</label>
+        <div class="file-input-wrap">
+          <div style="margin-bottom:8px; font-size:13px; color:var(--muted);">PDF, JPG or PNG</div>
+          <input type="file" id="fileUpload" accept="image/png,image/jpeg,image/jpg,application/pdf" />
+        </div>
+      </div>
+
       <div id="ocrProgress"></div>
-      <div class="warning">⚠ Auto-extraction may have errors — verify in the Week tab.</div>
-      <div id="ocrOutput">No file processed yet.</div>
+      <div class="warning">⚠ Auto-extraction may have errors — always verify in the Week tab after import.</div>
+      <div id="ocrOutput" style="margin-bottom:12px;">No file processed yet.</div>
+
+      <!-- Step 3: Auto-import button (shown after extraction) -->
+      <div id="importActionsRow" style="display:none;">
+        <div style="background:var(--panel-2); border:1px solid var(--accent); border-radius:10px; padding:12px; margin-bottom:8px;">
+          <div style="font-size:13px; font-weight:600; color:var(--accent); margin-bottom:6px;">✅ Step 3 — Import found shifts to Week tab:</div>
+          <div id="importPreview" style="font-size:12px; color:var(--muted); margin-bottom:10px;"></div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <input type="date" id="importWeekStart" style="flex:1;" />
+            <button class="primary" onclick="doAutoImport()" style="flex:1;">📥 Import to schedule</button>
+          </div>
+          <div style="font-size:11px; color:var(--muted); margin-top:6px;">Select the Monday of the week shown in the schedule, then click Import.</div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -596,6 +628,13 @@ window.switchTab = function(name){
     b.classList.toggle("active", b.dataset.tab===name);
   });
   if(name==="month") renderMonth();
+  if(name==="import"){
+    // Pre-fill name field with logged-in user name if empty
+    const nameEl = document.getElementById("importName");
+    if(nameEl && !nameEl.value && viewingData && viewingData.name){
+      nameEl.value = viewingData.name;
+    }
+  }
 };
 
 function renderWeek(){
@@ -833,32 +872,254 @@ function processImage(file, progress, output){
   }).then(({data:{text}})=>finishExtraction(text,output,progress))
    .catch(e=>{output.textContent="OCR failed: "+e.message; progress.textContent="";});
 }
+// Stores last parsed shifts for auto-import
+window.lastParsedShifts = null;
+
 function finishExtraction(text, output, progress){
   progress.textContent = "Done.";
-  const name = (viewingData && viewingData.name) || "";
+
+  // Get target name from input field (or fall back to logged-in user name)
+  const filterInput = document.getElementById("importName");
+  const targetName = (filterInput && filterInput.value.trim())
+    ? filterInput.value.trim()
+    : ((viewingData && viewingData.name) || "");
+
   const lines = text.split(/\r?\n/).filter(l=>l.trim().length);
-  const nameLower = name.toLowerCase();
-  const nameParts = nameLower.split(/\s+/).filter(p=>p.length>3);
+  const targetLower = targetName.toLowerCase();
+  const targetParts = targetLower.split(/\s+/).filter(p=>p.length>3);
+
+  // Find the line containing the target name
   let nameLineIdx = -1;
   for(let i=0;i<lines.length;i++){
     const low = lines[i].toLowerCase();
-    if((nameLower && low.includes(nameLower)) || nameParts.some(p=>low.includes(p))){ nameLineIdx = i; break; }
+    if((targetLower && low.includes(targetLower)) || targetParts.some(p=>low.includes(p))){
+      nameLineIdx = i; break;
+    }
   }
-  const re = /(\d{1,2}[:.]\d{2})\s*[-–—to]+\s*(\d{1,2}[:.]\d{2})/gi;
-  const shifts = [];
-  const search = nameLineIdx >= 0 ? lines.slice(nameLineIdx).join(" ") : text;
-  let m;
-  while((m = re.exec(search)) !== null){
-    shifts.push(m[1].replace(".",":")+" – "+m[2].replace(".",":"));
-    if(shifts.length>=7) break;
-  }
+
+  // Extract all time patterns from name's row
+  const timeRe = /(\d{1,2}[:.\s]\d{2})\s*[-–—]\s*(\d{1,2}[:.\s]\d{2})/g;
+  const rowText = nameLineIdx >= 0
+    ? lines.slice(nameLineIdx, nameLineIdx + 3).join(" ")
+    : "";
+
+  // Parse into per-day slots (McDonald's PDF has times grouped by day L=Mon,M=Tue,...)
+  // Strategy: extract all time pairs from the row, group by day
+  // Also try to detect OFF/FERIE keywords per day
+  const parsed = parseWeeklyRow(text, nameLineIdx, lines, targetName);
+
+  // Build output
   let out = "";
-  out += nameLineIdx>=0 ? `✓ Name match (line ${nameLineIdx+1})\n` : `⚠ Name "${name}" not found\n`;
-  out += "\n— Detected shift times —\n";
-  out += shifts.length ? shifts.map((s,i)=>`${i+1}. ${s}`).join("\n")+"\n" : "(none detected)\n";
-  out += "\n— Full extracted text —\n" + text.slice(0,4000);
+  if(nameLineIdx >= 0){
+    out += `✓ Name "${targetName}" found (line ${nameLineIdx+1})\n`;
+  } else {
+    out += `⚠ Name "${targetName}" not found in file.\n`;
+    out += "  → Check the name spelling or try a partial name (e.g. just 'Zilani')\n";
+  }
+
+  out += "\n— Extracted shifts (Mon–Sun) —\n";
+  const dayNames = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  let hasAny = false;
+  parsed.forEach((s,i) => {
+    if(s.off) { out += `${dayNames[i]}: OFF\n`; hasAny=true; }
+    else if(s.slots && s.slots.length) {
+      out += `${dayNames[i]}: ${s.slots.map(x=>x.start+" – "+x.end).join(" | ")}\n`;
+      hasAny = true;
+    } else {
+      out += `${dayNames[i]}: —\n`;
+    }
+  });
+  if(!hasAny) out += "(no shifts detected)\n";
+
+  out += "\n— Full extracted text (first 3000 chars) —\n" + text.slice(0,3000);
   output.textContent = out;
+
+  // Store for auto-import and show the import action row
+  if(hasAny && nameLineIdx >= 0){
+    window.lastParsedShifts = parsed;
+    showImportActions(parsed, targetName);
+  } else {
+    document.getElementById("importActionsRow").style.display = "none";
+    window.lastParsedShifts = null;
+  }
 }
+
+function parseWeeklyRow(fullText, nameLineIdx, lines, targetName){
+  // Result: array of 7 items (Mon–Sun), each {off:bool, slots:[{start,end}]}
+  const result = Array.from({length:7}, () => ({off:false, slots:[]}));
+  if(nameLineIdx < 0) return result;
+
+  // Grab name row + next 2 lines (some PDFs wrap the row)
+  const rowLines = lines.slice(nameLineIdx, Math.min(nameLineIdx+4, lines.length));
+  const rowText = rowLines.join(" ");
+
+  // Check for FERIE/OFF keyword (full week off)
+  if(/\bFERIE\b/i.test(rowText) && (rowText.match(/\bFERIE\b/gi)||[]).length >= 5){
+    return result.map(() => ({off:true, slots:[]}));
+  }
+
+  // Extract ALL time pairs from the row
+  const timeRe = /(\d{1,2})[:.](\d{2})\s*[-–—]\s*(\d{1,2})[:.](\d{2})/g;
+  const allPairs = [];
+  let m;
+  while((m = timeRe.exec(rowText)) !== null){
+    const start = pad(m[1])+":"+pad(m[2]);
+    const end = pad(m[3])+":"+pad(m[4]);
+    allPairs.push({start, end});
+  }
+
+  // Now figure out which day each pair belongs to by looking at the header row
+  // Strategy: look for "Lun/Mon/Lun", "Mar/Tue", "Mer/Wed", "Gio/Thu", "Ven/Fri", "Sab/Sat", "Dom/Sun"
+  // in the full text to find column positions
+  const dayPatterns = [
+    /\bLun\b|\bMon\b|\bMonday\b/i,
+    /\bMar\b|\bTue\b|\bTuesday\b/i,
+    /\bMer\b|\bWed\b|\bWednesday\b/i,
+    /\bGio\b|\bThu\b|\bThursday\b/i,
+    /\bVen\b|\bFri\b|\bFriday\b/i,
+    /\bSab\b|\bSat\b|\bSaturday\b/i,
+    /\bDom\b|\bSun\b|\bSunday\b/i,
+  ];
+
+  // Find header line
+  let headerLine = "";
+  for(const l of lines){
+    const lc = l.toLowerCase();
+    if((lc.includes("lun") || lc.includes("mon")) && (lc.includes("mar") || lc.includes("tue"))){
+      headerLine = l; break;
+    }
+  }
+
+  // If we have a structured header, try to map columns
+  // Otherwise fall back: assign time pairs sequentially to days that aren't OFF
+  if(headerLine){
+    // Get character positions of each day in header
+    const colPos = dayPatterns.map(p => {
+      const match = headerLine.match(p);
+      if(!match) return -1;
+      return headerLine.indexOf(match[0]);
+    });
+
+    // For each row line, find which column position each time pair falls in
+    rowLines.forEach(line => {
+      const timePosRe = /(\d{1,2})[:.](\d{2})\s*[-–—]\s*(\d{1,2})[:.](\d{2})/g;
+      let tm;
+      while((tm = timePosRe.exec(line)) !== null){
+        const start = pad(tm[1])+":"+pad(tm[2]);
+        const end = pad(tm[3])+":"+pad(tm[4]);
+        const pos = tm.index;
+
+        // OFF keyword before this time pair position?
+        // Find which day column this position belongs to
+        let dayIdx = -1;
+        for(let d=0; d<7; d++){
+          const nextCol = colPos.slice(d+1).find(p=>p>colPos[d]) || 9999;
+          if(colPos[d]>=0 && pos >= colPos[d] && pos < nextCol){
+            dayIdx = d; break;
+          }
+        }
+        // Fallback: assign to first empty day
+        if(dayIdx === -1){
+          dayIdx = result.findIndex(r => !r.off && r.slots.length === 0);
+        }
+        if(dayIdx >= 0 && dayIdx < 7){
+          result[dayIdx].slots.push({start, end});
+        }
+      }
+
+      // Detect OFF per day
+      const offRe = /\bOFF\b/gi;
+      let om;
+      while((om = offRe.exec(line)) !== null){
+        const pos = om.index;
+        let dayIdx = -1;
+        for(let d=0; d<7; d++){
+          const nextCol = colPos.slice(d+1).find(p=>p>colPos[d]) || 9999;
+          if(colPos[d]>=0 && pos >= colPos[d] && pos < nextCol){ dayIdx=d; break; }
+        }
+        if(dayIdx>=0 && dayIdx<7 && result[dayIdx].slots.length===0){
+          result[dayIdx].off = true;
+        }
+      }
+    });
+
+  } else {
+    // Fallback: just assign pairs sequentially
+    allPairs.forEach((p,i) => {
+      if(i<7) result[i].slots.push(p);
+    });
+  }
+
+  return result;
+}
+
+function pad(n){ return String(n).padStart(2,"0"); }
+
+function showImportActions(parsed, targetName){
+  const row = document.getElementById("importActionsRow");
+  const preview = document.getElementById("importPreview");
+  const dayNames = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  let lines = [`Shifts found for: ${targetName}`,""];
+  parsed.forEach((s,i) => {
+    if(s.off) lines.push(`${dayNames[i]}: OFF`);
+    else if(s.slots.length) lines.push(`${dayNames[i]}: ${s.slots.map(x=>x.start+" – "+x.end).join(" | ")}`);
+  });
+  preview.textContent = lines.join("\n");
+
+  // Set default date to current Monday
+  const today = new Date();
+  const monday = getMonday(today);
+  document.getElementById("importWeekStart").value = fmtDate(monday);
+
+  row.style.display = "block";
+}
+
+window.useMyName = function(){
+  const name = (viewingData && viewingData.name) || "";
+  if(name){
+    document.getElementById("importName").value = name;
+    showToast("Name set to: " + name);
+  } else {
+    showToast("Please sign in first");
+  }
+};
+
+window.doAutoImport = async function(){
+  const parsed = window.lastParsedShifts;
+  if(!parsed){ showToast("No shifts to import"); return; }
+
+  const dateVal = document.getElementById("importWeekStart").value;
+  if(!dateVal){ alert("Please select the Monday date of that week."); return; }
+
+  const weekStart = parseDate(dateVal);
+  // Make sure it's a Monday
+  if(weekStart.getDay() !== 1){
+    // Find the Monday of that week
+    const mon = getMonday(weekStart);
+    document.getElementById("importWeekStart").value = fmtDate(mon);
+  }
+  const monday = getMonday(weekStart);
+
+  // Build the 7-day shift array
+  const arr = parsed.map(s => {
+    if(s.off) return {off:true, start:"", end:""};
+    if(s.slots.length === 0) return {off:false, start:"", end:""};
+    // Use first slot (multiple slots = split shifts, take the full span)
+    if(s.slots.length === 1) return {off:false, start:s.slots[0].start, end:s.slots[0].end};
+    // Multiple slots: use first start to last end
+    return {off:false, start:s.slots[0].start, end:s.slots[s.slots.length-1].end};
+  });
+
+  if(!confirm(`Import ${parsed.filter(s=>!s.off&&s.slots.length).length} shifts for week of ${fmtDisp(monday)}?\nThis will overwrite that week's current data.`)) return;
+
+  await setWeek(monday, arr);
+  currentWeekStart = monday;
+  switchTab("week");
+  renderWeek();
+  showToast("✅ Shifts imported to Week tab!");
+  window.lastParsedShifts = null;
+  document.getElementById("importActionsRow").style.display = "none";
+};
 
 function init(){
   applyTheme(localStorage.getItem(K_THEME) || "dark");
