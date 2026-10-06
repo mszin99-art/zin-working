@@ -113,7 +113,7 @@
     </g>
     <circle cx="95" cy="22" r="8" fill="#fbbf24"/>
   </svg>
-  <div class="text">Connecting to cloud...</div>
+  <div class="text" id="splashText">Connecting to cloud...</div>
 </div>
 
 <div class="container" id="appContainer" style="display:none;">
@@ -209,7 +209,6 @@
     <div class="panel">
       <h2>Import schedule</h2>
 
-      <!-- Step 1: Name filter -->
       <div style="margin-bottom:12px;">
         <label style="font-size:13px; color:var(--text); font-weight:600; display:block; margin-bottom:6px;">
           👤 Step 1 — Name to extract shifts for:
@@ -221,7 +220,6 @@
         <div style="font-size:11px; color:var(--muted); margin-top:4px;">Only shifts matching this name will be extracted from the schedule.</div>
       </div>
 
-      <!-- Step 2: File upload -->
       <div style="margin-bottom:8px;">
         <label style="font-size:13px; color:var(--text); font-weight:600; display:block; margin-bottom:6px;">📄 Step 2 — Upload schedule file:</label>
         <div class="file-input-wrap">
@@ -234,7 +232,6 @@
       <div class="warning">⚠ Auto-extraction may have errors — always verify in the Week tab after import.</div>
       <div id="ocrOutput" style="margin-bottom:12px;">No file processed yet.</div>
 
-      <!-- Step 3: Auto-import button (shown after extraction) -->
       <div id="importActionsRow" style="display:none;">
         <div style="background:var(--panel-2); border:1px solid var(--accent); border-radius:10px; padding:12px; margin-bottom:8px;">
           <div style="font-size:13px; font-weight:600; color:var(--accent); margin-bottom:6px;">✅ Step 3 — Import found shifts to Week tab:</div>
@@ -269,7 +266,7 @@
       <input type="text" id="authName" placeholder="e.g. Mohammed Shajalal" />
     </div>
     <label style="margin-top:10px;">Email</label>
-    <input type="email" id="authEmail" placeholder="[email protected]" autocomplete="email" />
+    <input type="email" id="authEmail" placeholder="you@example.com" autocomplete="email" />
     <label style="margin-top:10px;">Password</label>
     <input type="password" id="authPassword" placeholder="At least 6 characters" autocomplete="current-password" />
     <div class="error-text" id="authError" style="display:none;"></div>
@@ -348,7 +345,7 @@ const firebaseConfig = {
   messagingSenderId: "988419444088",
   appId: "1:988419444088:web:5098c942a905f284534c8d"
 };
-const OWNER_EMAIL = "[email protected]";
+const OWNER_EMAIL = "zshajalal@gmail.com";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -629,7 +626,6 @@ window.switchTab = function(name){
   });
   if(name==="month") renderMonth();
   if(name==="import"){
-    // Pre-fill name field with logged-in user name if empty
     const nameEl = document.getElementById("importName");
     if(nameEl && !nameEl.value && viewingData && viewingData.name){
       nameEl.value = viewingData.name;
@@ -872,13 +868,11 @@ function processImage(file, progress, output){
   }).then(({data:{text}})=>finishExtraction(text,output,progress))
    .catch(e=>{output.textContent="OCR failed: "+e.message; progress.textContent="";});
 }
-// Stores last parsed shifts for auto-import
 window.lastParsedShifts = null;
 
 function finishExtraction(text, output, progress){
   progress.textContent = "Done.";
 
-  // Get target name from input field (or fall back to logged-in user name)
   const filterInput = document.getElementById("importName");
   const targetName = (filterInput && filterInput.value.trim())
     ? filterInput.value.trim()
@@ -888,7 +882,6 @@ function finishExtraction(text, output, progress){
   const targetLower = targetName.toLowerCase();
   const targetParts = targetLower.split(/\s+/).filter(p=>p.length>3);
 
-  // Find the line containing the target name
   let nameLineIdx = -1;
   for(let i=0;i<lines.length;i++){
     const low = lines[i].toLowerCase();
@@ -897,18 +890,8 @@ function finishExtraction(text, output, progress){
     }
   }
 
-  // Extract all time patterns from name's row
-  const timeRe = /(\d{1,2}[:.\s]\d{2})\s*[-–—]\s*(\d{1,2}[:.\s]\d{2})/g;
-  const rowText = nameLineIdx >= 0
-    ? lines.slice(nameLineIdx, nameLineIdx + 3).join(" ")
-    : "";
-
-  // Parse into per-day slots (McDonald's PDF has times grouped by day L=Mon,M=Tue,...)
-  // Strategy: extract all time pairs from the row, group by day
-  // Also try to detect OFF/FERIE keywords per day
   const parsed = parseWeeklyRow(text, nameLineIdx, lines, targetName);
 
-  // Build output
   let out = "";
   if(nameLineIdx >= 0){
     out += `✓ Name "${targetName}" found (line ${nameLineIdx+1})\n`;
@@ -934,7 +917,6 @@ function finishExtraction(text, output, progress){
   out += "\n— Full extracted text (first 3000 chars) —\n" + text.slice(0,3000);
   output.textContent = out;
 
-  // Store for auto-import and show the import action row
   if(hasAny && nameLineIdx >= 0){
     window.lastParsedShifts = parsed;
     showImportActions(parsed, targetName);
@@ -945,20 +927,16 @@ function finishExtraction(text, output, progress){
 }
 
 function parseWeeklyRow(fullText, nameLineIdx, lines, targetName){
-  // Result: array of 7 items (Mon–Sun), each {off:bool, slots:[{start,end}]}
   const result = Array.from({length:7}, () => ({off:false, slots:[]}));
   if(nameLineIdx < 0) return result;
 
-  // Grab name row + next 2 lines (some PDFs wrap the row)
   const rowLines = lines.slice(nameLineIdx, Math.min(nameLineIdx+4, lines.length));
   const rowText = rowLines.join(" ");
 
-  // Check for FERIE/OFF keyword (full week off)
   if(/\bFERIE\b/i.test(rowText) && (rowText.match(/\bFERIE\b/gi)||[]).length >= 5){
     return result.map(() => ({off:true, slots:[]}));
   }
 
-  // Extract ALL time pairs from the row
   const timeRe = /(\d{1,2})[:.](\d{2})\s*[-–—]\s*(\d{1,2})[:.](\d{2})/g;
   const allPairs = [];
   let m;
@@ -968,9 +946,6 @@ function parseWeeklyRow(fullText, nameLineIdx, lines, targetName){
     allPairs.push({start, end});
   }
 
-  // Now figure out which day each pair belongs to by looking at the header row
-  // Strategy: look for "Lun/Mon/Lun", "Mar/Tue", "Mer/Wed", "Gio/Thu", "Ven/Fri", "Sab/Sat", "Dom/Sun"
-  // in the full text to find column positions
   const dayPatterns = [
     /\bLun\b|\bMon\b|\bMonday\b/i,
     /\bMar\b|\bTue\b|\bTuesday\b/i,
@@ -981,7 +956,6 @@ function parseWeeklyRow(fullText, nameLineIdx, lines, targetName){
     /\bDom\b|\bSun\b|\bSunday\b/i,
   ];
 
-  // Find header line
   let headerLine = "";
   for(const l of lines){
     const lc = l.toLowerCase();
@@ -990,17 +964,13 @@ function parseWeeklyRow(fullText, nameLineIdx, lines, targetName){
     }
   }
 
-  // If we have a structured header, try to map columns
-  // Otherwise fall back: assign time pairs sequentially to days that aren't OFF
   if(headerLine){
-    // Get character positions of each day in header
     const colPos = dayPatterns.map(p => {
       const match = headerLine.match(p);
       if(!match) return -1;
       return headerLine.indexOf(match[0]);
     });
 
-    // For each row line, find which column position each time pair falls in
     rowLines.forEach(line => {
       const timePosRe = /(\d{1,2})[:.](\d{2})\s*[-–—]\s*(\d{1,2})[:.](\d{2})/g;
       let tm;
@@ -1009,8 +979,6 @@ function parseWeeklyRow(fullText, nameLineIdx, lines, targetName){
         const end = pad(tm[3])+":"+pad(tm[4]);
         const pos = tm.index;
 
-        // OFF keyword before this time pair position?
-        // Find which day column this position belongs to
         let dayIdx = -1;
         for(let d=0; d<7; d++){
           const nextCol = colPos.slice(d+1).find(p=>p>colPos[d]) || 9999;
@@ -1018,7 +986,6 @@ function parseWeeklyRow(fullText, nameLineIdx, lines, targetName){
             dayIdx = d; break;
           }
         }
-        // Fallback: assign to first empty day
         if(dayIdx === -1){
           dayIdx = result.findIndex(r => !r.off && r.slots.length === 0);
         }
@@ -1027,7 +994,6 @@ function parseWeeklyRow(fullText, nameLineIdx, lines, targetName){
         }
       }
 
-      // Detect OFF per day
       const offRe = /\bOFF\b/gi;
       let om;
       while((om = offRe.exec(line)) !== null){
@@ -1044,7 +1010,6 @@ function parseWeeklyRow(fullText, nameLineIdx, lines, targetName){
     });
 
   } else {
-    // Fallback: just assign pairs sequentially
     allPairs.forEach((p,i) => {
       if(i<7) result[i].slots.push(p);
     });
@@ -1052,8 +1017,6 @@ function parseWeeklyRow(fullText, nameLineIdx, lines, targetName){
 
   return result;
 }
-
-function pad(n){ return String(n).padStart(2,"0"); }
 
 function showImportActions(parsed, targetName){
   const row = document.getElementById("importActionsRow");
@@ -1066,7 +1029,6 @@ function showImportActions(parsed, targetName){
   });
   preview.textContent = lines.join("\n");
 
-  // Set default date to current Monday
   const today = new Date();
   const monday = getMonday(today);
   document.getElementById("importWeekStart").value = fmtDate(monday);
@@ -1092,21 +1054,16 @@ window.doAutoImport = async function(){
   if(!dateVal){ alert("Please select the Monday date of that week."); return; }
 
   const weekStart = parseDate(dateVal);
-  // Make sure it's a Monday
   if(weekStart.getDay() !== 1){
-    // Find the Monday of that week
     const mon = getMonday(weekStart);
     document.getElementById("importWeekStart").value = fmtDate(mon);
   }
   const monday = getMonday(weekStart);
 
-  // Build the 7-day shift array
   const arr = parsed.map(s => {
     if(s.off) return {off:true, start:"", end:""};
     if(s.slots.length === 0) return {off:false, start:"", end:""};
-    // Use first slot (multiple slots = split shifts, take the full span)
     if(s.slots.length === 1) return {off:false, start:s.slots[0].start, end:s.slots[0].end};
-    // Multiple slots: use first start to last end
     return {off:false, start:s.slots[0].start, end:s.slots[s.slots.length-1].end};
   });
 
@@ -1126,12 +1083,13 @@ function init(){
   currentWeekStart = getMonday(new Date());
   currentMonth = new Date(currentWeekStart.getFullYear(), currentWeekStart.getMonth(), 1);
   document.getElementById("fileUpload").addEventListener("change", handleFileUpload);
+
   setTimeout(() => {
-    if(!window.currentAuthUser){
+    if(!window.currentAuthUser && document.getElementById("splash").style.display !== "none"){
       document.getElementById("splash").style.display = "none";
       document.getElementById("authModal").classList.add("show");
     }
-  }, 3000);
+  }, 6000);
 }
 document.addEventListener("DOMContentLoaded", init);
 </script>
