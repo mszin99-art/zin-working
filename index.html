@@ -53,8 +53,9 @@
   button.ghost { background:transparent; }
   button.danger-text { color:var(--danger); }
   button:disabled { opacity:0.4; cursor:not-allowed; }
-  input, select { background:var(--panel-2); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:10px; font-size:14px; font-family:inherit; width:100%; }
-  input:focus, select:focus { outline:none; border-color:var(--accent); }
+  input, select, textarea { background:var(--panel-2); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:10px; font-size:14px; font-family:inherit; width:100%; }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--accent); }
+  textarea { resize:vertical; min-height:64px; }
   .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
   label { font-size:12px; color:var(--muted); display:block; margin-bottom:4px; }
   .week-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:8px; }
@@ -67,6 +68,7 @@
   .day .dtime.off { color:var(--muted); font-style:italic; font-weight:normal; }
   .day .dtime.empty { color:var(--muted); font-weight:normal; }
   .day .dhours { font-size:12px; color:var(--muted); margin-top:2px; }
+  .dnote { font-size:11px; color:var(--muted); margin-top:6px; font-style:italic; padding:5px 8px; background:color-mix(in srgb,var(--accent) 8%,transparent); border-left:2px solid var(--accent); border-radius:3px; word-break:break-word; }
   .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
   .stat { background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center; }
   .stat .lbl { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:0.5px; }
@@ -77,11 +79,17 @@
   .week-row .wr-hours { color:var(--accent); font-weight:600; }
   .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.7); display:none; align-items:center; justify-content:center; z-index:100; padding:16px; }
   .modal-bg.show { display:flex; }
-  .modal { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:20px; max-width:400px; width:100%; max-height:90vh; overflow-y:auto; }
+  .modal { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:20px; max-width:440px; width:100%; max-height:90vh; overflow-y:auto; }
   .modal h3 { margin:0 0 14px 0; font-size:16px; }
   .modal .actions { display:flex; gap:8px; margin-top:16px; justify-content:flex-end; flex-wrap:wrap; }
+  .modal-section { margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
+  .modal-section:first-of-type { border-top:none; padding-top:0; margin-top:0; }
+  .section-label { font-size:11px; color:var(--accent); font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:8px; }
   .checkbox-row { display:flex; align-items:center; gap:8px; margin:12px 0; }
   .checkbox-row input { width:auto; }
+  .chip-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+  .chip { background:var(--panel-2); border:1px solid var(--border); color:var(--text); padding:5px 10px; border-radius:999px; font-size:12px; cursor:pointer; white-space:nowrap; }
+  .chip:hover { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 10%,var(--panel-2)); }
   .file-input-wrap { border:1px dashed var(--border); border-radius:10px; padding:16px; text-align:center; margin-bottom:8px; }
   .file-input-wrap input { width:auto; }
   .warning { background:color-mix(in srgb,var(--warn) 12%,transparent); border:1px solid var(--warn); color:var(--warn); padding:8px 12px; border-radius:8px; font-size:12px; margin:8px 0; }
@@ -140,6 +148,7 @@
         <strong id="userName">—</strong>
         <span id="ownerBadge" style="display:none;" class="owner-badge">OWNER</span>
       </div>
+      <button class="icon-btn" onclick="openSettings()" title="Settings">⚙️</button>
       <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="Theme">🌙</button>
     </div>
   </header>
@@ -172,6 +181,7 @@
       <div id="weekDays"></div>
       <div style="margin-top:10px; text-align:right; font-size:13px; color:var(--muted);">
         Week total: <strong style="color:var(--accent);"><span id="weekTotal">0</span>h</strong>
+        <span id="weekSalary" style="margin-left:8px;"></span>
       </div>
     </div>
   </div>
@@ -196,6 +206,12 @@
         <div class="stat" style="border-color:var(--accent-2);">
           <div class="lbl">🌟 Sunday Hours</div>
           <div class="val" id="mSundayHours" style="color:var(--accent-2);">0</div>
+        </div>
+      </div>
+      <div id="mSalaryBox" style="display:none; margin-top:8px;">
+        <div class="stat" style="border-color:var(--accent); background:color-mix(in srgb,var(--accent) 8%,var(--panel-2));">
+          <div class="lbl">💰 Estimated Salary</div>
+          <div class="val" id="mSalary" style="color:var(--accent); font-size:22px;">—</div>
         </div>
       </div>
     </div>
@@ -280,23 +296,86 @@
   </div>
 </div>
 
+<!-- ================= EDIT MODAL (updated) ================= -->
 <div class="modal-bg" id="editModal">
   <div class="modal">
     <h3 id="editTitle">Edit shift</h3>
+
     <div class="checkbox-row">
       <input type="checkbox" id="editOff" onchange="toggleOff()" />
       <label for="editOff" style="margin:0;">Day off</label>
     </div>
+
     <div id="editTimes">
-      <label>Start time</label>
-      <input type="time" id="editStart" />
-      <label style="margin-top:10px;">End time</label>
-      <input type="time" id="editEnd" />
+      <div class="section-label">⏰ Quick presets</div>
+      <div class="chip-row">
+        <button type="button" class="chip" onclick="applyPreset('09:00','17:00')">🌅 9 – 5</button>
+        <button type="button" class="chip" onclick="applyPreset('06:00','14:00')">🌄 Morning</button>
+        <button type="button" class="chip" onclick="applyPreset('14:00','22:00')">☀️ Afternoon</button>
+        <button type="button" class="chip" onclick="applyPreset('22:00','06:00')">🌙 Night</button>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div>
+          <label>Start time</label>
+          <input type="time" id="editStart" />
+        </div>
+        <div>
+          <label>End time</label>
+          <input type="time" id="editEnd" />
+        </div>
+      </div>
     </div>
+
+    <div class="modal-section">
+      <div class="section-label">📝 Details / Notes</div>
+      <textarea id="editNote" rows="3" placeholder="What did you work on today? Any notes? (optional)"></textarea>
+      <div style="font-size:11px; color:var(--muted); margin-top:4px;">Visible on the day card and stored in your cloud data.</div>
+    </div>
+
     <div class="actions">
       <button onclick="clearDay()" class="danger-text">Clear</button>
       <button onclick="closeEdit()">Cancel</button>
       <button class="primary" onclick="saveEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SETTINGS MODAL (new) ================= -->
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <h3>⚙️ Settings</h3>
+
+    <div class="modal-section">
+      <div class="section-label">🎨 Appearance</div>
+      <label>Theme</label>
+      <select id="setTheme">
+        <option value="dark">🌙 Dark</option>
+        <option value="light">☀️ Light</option>
+      </select>
+    </div>
+
+    <div class="modal-section">
+      <div class="section-label">💰 Work & Pay</div>
+      <label>Hourly rate</label>
+      <input type="number" id="setRate" placeholder="e.g. 12.5" step="0.01" min="0" />
+      <label style="margin-top:10px;">Currency symbol</label>
+      <input type="text" id="setCurrency" placeholder="e.g. €, $, ৳, kr" maxlength="4" />
+      <label style="margin-top:10px;">Weekly target (hours)</label>
+      <input type="number" id="setTarget" placeholder="e.g. 40" step="0.5" min="0" />
+    </div>
+
+    <div class="modal-section">
+      <div class="section-label">💾 Data</div>
+      <div class="row" style="flex-direction:column; align-items:stretch; gap:8px;">
+        <button onclick="downloadBackup()">⬇ Download backup (.json)</button>
+        <button onclick="emailBackup()">📧 Email my data</button>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button onclick="closeSettings()">Cancel</button>
+      <button class="primary" onclick="saveSettings()">Save Settings</button>
     </div>
   </div>
 </div>
@@ -308,8 +387,7 @@
       Logged in as <strong style="color:var(--text);" id="menuUserEmail">—</strong>
     </div>
     <div class="row" style="flex-direction:column; align-items:stretch; gap:8px;">
-      <button onclick="emailBackup()">📧 Email my data</button>
-      <button onclick="downloadBackup()">⬇ Download backup (.json)</button>
+      <button onclick="closeMenuModal(); openSettings();">⚙️ Settings</button>
       <hr style="border-color:var(--border); margin:6px 0;"/>
       <button onclick="signOutUser()">🚪 Sign out</button>
       <div id="ownerMenu" style="display:none;">
@@ -395,6 +473,7 @@ const parseDate = s => { const [y,m,d]=s.split("-").map(Number); return new Date
 const addDays = (d,n) => { const x=new Date(d); x.setDate(x.getDate()+n); return x; };
 function getMonday(d){ const x=new Date(d); const day=x.getDay(); x.setDate(x.getDate()+(day===0?-6:1-day)); x.setHours(0,0,0,0); return x; }
 function hoursBetween(s,e){ if(!s||!e) return 0; const [sh,sm]=s.split(":").map(Number); const [eh,em]=e.split(":").map(Number); let m=(eh*60+em)-(sh*60+sm); if(m<0) m+=1440; return m/60; }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
 
 function showToast(msg, ms=2500){
   const t = document.getElementById("toast");
@@ -429,7 +508,8 @@ window.onUserSignedIn = async function(){
       name: user.displayName || (user.email.split("@")[0]),
       email: user.email,
       createdAt: fns.serverTimestamp(),
-      shifts: {}
+      shifts: {},
+      settings: { currency: "€", hourlyRate: 0, targetWeekly: 0 }
     });
   }
 
@@ -552,7 +632,8 @@ window.doAuth = async function(){
       await fns.setDoc(fns.doc(window.fbDb, "users", cred.user.uid), {
         name: name, email: email,
         createdAt: fns.serverTimestamp(),
-        shifts: {}
+        shifts: {},
+        settings: { currency: "€", hourlyRate: 0, targetWeekly: 0 }
       });
     } else {
       await fns.signInWithEmailAndPassword(window.fbAuth, email, password);
@@ -594,10 +675,10 @@ window.signOutUser = async function(){
 };
 
 function getWeek(weekStart){
-  if(!viewingData) return Array.from({length:7}, ()=>({off:false,start:"",end:""}));
+  if(!viewingData) return Array.from({length:7}, ()=>({off:false,start:"",end:"",note:""}));
   const key = fmtDate(weekStart);
   return (viewingData.shifts && viewingData.shifts[key])
-    || Array.from({length:7}, ()=>({off:false,start:"",end:""}));
+    || Array.from({length:7}, ()=>({off:false,start:"",end:"",note:""}));
 }
 
 async function setWeek(weekStart, arr){
@@ -651,12 +732,27 @@ function renderWeek(){
     if(s.off) timeEl = `<div class="dtime off">OFF</div>`;
     else if(s.start && s.end) timeEl = `<div class="dtime">${s.start} – ${s.end}</div><div class="dhours">${hrs}h</div>`;
     else timeEl = `<div class="dtime empty">— not set —</div>`;
+    const noteHtml = (s.note && s.note.trim())
+      ? `<div class="dnote">📝 ${escapeHtml(s.note.length > 80 ? s.note.slice(0,80)+"…" : s.note)}</div>`
+      : "";
     const card = document.createElement("div");
     card.className = "day" + (isToday?" today":"");
-    card.innerHTML = `<div><div class="dname">${DAY_FULL[i]}</div><div class="ddate">${fmtDisp(d)}</div></div><div class="dinfo">${timeEl}</div><button onclick="openEdit(${i})">Edit</button>`;
+    card.innerHTML = `<div><div class="dname">${DAY_FULL[i]}</div><div class="ddate">${fmtDisp(d)}</div></div><div class="dinfo">${timeEl}${noteHtml}</div><button onclick="openEdit(${i})">Edit</button>`;
     container.appendChild(card);
   });
   document.getElementById("weekTotal").textContent = total.toFixed(1);
+  updateWeekSalary(total);
+}
+
+function updateWeekSalary(totalHours){
+  const el = document.getElementById("weekSalary");
+  const s = (viewingData && viewingData.settings) || {};
+  if(!s.hourlyRate || !el){ if(el) el.textContent = ""; return; }
+  const sym = s.currency || "";
+  const amount = (totalHours * s.hourlyRate).toFixed(2);
+  el.textContent = `· ${sym}${amount}`;
+  el.style.color = "var(--accent-2)";
+  el.style.fontWeight = "600";
 }
 
 window.changeWeek = function(dir){ currentWeekStart = addDays(currentWeekStart, 7*dir); renderWeek(); };
@@ -674,9 +770,10 @@ window.openEdit = function(i){
   const s = arr[i];
   const d = addDays(currentWeekStart, i);
   document.getElementById("editTitle").textContent = `${DAY_FULL[i]} — ${fmtDisp(d)}`;
-  document.getElementById("editOff").checked = s.off;
+  document.getElementById("editOff").checked = !!s.off;
   document.getElementById("editStart").value = s.start || "";
   document.getElementById("editEnd").value = s.end || "";
+  document.getElementById("editNote").value = s.note || "";
   toggleOff();
   document.getElementById("editModal").classList.add("show");
 };
@@ -684,13 +781,20 @@ window.toggleOff = function(){
   document.getElementById("editTimes").style.display = document.getElementById("editOff").checked ? "none" : "block";
 };
 window.closeEdit = function(){ document.getElementById("editModal").classList.remove("show"); };
+
+window.applyPreset = function(start, end){
+  document.getElementById("editStart").value = start;
+  document.getElementById("editEnd").value = end;
+};
+
 window.saveEdit = async function(){
   const off = document.getElementById("editOff").checked;
   const start = document.getElementById("editStart").value;
   const end = document.getElementById("editEnd").value;
+  const note = document.getElementById("editNote").value.trim();
   if(!off && (!start || !end)){ alert("Enter both times, or mark as day off."); return; }
   const arr = getWeek(currentWeekStart);
-  arr[editIndex] = off ? {off:true,start:"",end:""} : {off:false,start,end};
+  arr[editIndex] = off ? {off:true,start:"",end:"",note} : {off:false,start,end,note};
   closeEdit();
   await setWeek(currentWeekStart, arr);
   renderWeek();
@@ -698,7 +802,7 @@ window.saveEdit = async function(){
 };
 window.clearDay = async function(){
   const arr = getWeek(currentWeekStart);
-  arr[editIndex] = {off:false,start:"",end:""};
+  arr[editIndex] = {off:false,start:"",end:"",note:""};
   closeEdit();
   await setWeek(currentWeekStart, arr);
   renderWeek();
@@ -752,12 +856,61 @@ function renderMonth(){
   document.getElementById("mAvg").textContent = totalShifts ? (totalHours/totalShifts).toFixed(1) : "0";
   document.getElementById("mSundayShifts").textContent = totalSundayShifts;
   document.getElementById("mSundayHours").textContent = totalSundayHours.toFixed(1);
+
+  // Salary calculation
+  const s = (viewingData && viewingData.settings) || {};
+  const box = document.getElementById("mSalaryBox");
+  if(s.hourlyRate && box){
+    box.style.display = "block";
+    const sym = s.currency || "";
+    const amount = (totalHours * s.hourlyRate).toFixed(2);
+    document.getElementById("mSalary").textContent = `${sym}${amount}`;
+  } else if(box){
+    box.style.display = "none";
+  }
 }
 window.changeMonth = function(dir){
   currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth()+dir, 1);
   renderMonth();
 };
 
+// ============ SETTINGS ============
+window.openSettings = function(){
+  const s = (viewingData && viewingData.settings) || {};
+  document.getElementById("setTheme").value = document.documentElement.getAttribute("data-theme") || "dark";
+  document.getElementById("setRate").value = s.hourlyRate || "";
+  document.getElementById("setCurrency").value = s.currency || "";
+  document.getElementById("setTarget").value = s.targetWeekly || "";
+  document.getElementById("settingsModal").classList.add("show");
+};
+window.closeSettings = function(){ document.getElementById("settingsModal").classList.remove("show"); };
+window.saveSettings = async function(){
+  const fns = window.fbFns;
+  if(!viewingUid) return;
+  const theme = document.getElementById("setTheme").value;
+  const rate = parseFloat(document.getElementById("setRate").value) || 0;
+  const currency = document.getElementById("setCurrency").value.trim() || "";
+  const targetWeekly = parseFloat(document.getElementById("setTarget").value) || 0;
+
+  applyTheme(theme);
+
+  const newSettings = { currency, hourlyRate: rate, targetWeekly };
+  if(!viewingData) viewingData = {};
+  viewingData.settings = newSettings;
+
+  try {
+    await fns.updateDoc(fns.doc(window.fbDb, "users", viewingUid), { settings: newSettings });
+    showToast("Settings saved ✓");
+    closeSettings();
+    renderWeek();
+    if(document.getElementById("tab-month").style.display === "block") renderMonth();
+  } catch(e){
+    console.error(e);
+    showToast("Save failed: " + e.message);
+  }
+};
+
+// ============ MENU ============
 window.openMenuModal = function(){
   document.getElementById("ownerMenu").style.display = window.isOwner ? "block" : "none";
   document.getElementById("menuModal").classList.add("show");
@@ -769,6 +922,7 @@ function buildBackupData(){
     profile: viewingData && viewingData.name,
     email: viewingData && viewingData.email,
     shifts: (viewingData && viewingData.shifts) || {},
+    settings: (viewingData && viewingData.settings) || {},
     exportedAt: new Date().toISOString()
   }, null, 2);
 }
@@ -783,6 +937,7 @@ window.downloadBackup = function(){
   a.click();
   URL.revokeObjectURL(url);
   closeMenuModal();
+  closeSettings();
 };
 
 window.emailBackup = function(){
@@ -796,6 +951,7 @@ window.emailBackup = function(){
   }
   window.location.href = mailto;
   closeMenuModal();
+  closeSettings();
 };
 
 window.deleteViewingUser = async function(){
@@ -816,6 +972,13 @@ window.deleteViewingUser = async function(){
     showToast("Delete failed: " + e.message);
   }
 };
+
+// ============ ESC key closes any modal ============
+document.addEventListener("keydown", (e) => {
+  if(e.key === "Escape"){
+    document.querySelectorAll(".modal-bg.show").forEach(m => m.classList.remove("show"));
+  }
+});
 
 if(typeof pdfjsLib !== "undefined"){
   pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -872,16 +1035,13 @@ window.lastParsedShifts = null;
 
 function finishExtraction(text, output, progress){
   progress.textContent = "Done.";
-
   const filterInput = document.getElementById("importName");
   const targetName = (filterInput && filterInput.value.trim())
     ? filterInput.value.trim()
     : ((viewingData && viewingData.name) || "");
-
   const lines = text.split(/\r?\n/).filter(l=>l.trim().length);
   const targetLower = targetName.toLowerCase();
   const targetParts = targetLower.split(/\s+/).filter(p=>p.length>3);
-
   let nameLineIdx = -1;
   for(let i=0;i<lines.length;i++){
     const low = lines[i].toLowerCase();
@@ -889,9 +1049,7 @@ function finishExtraction(text, output, progress){
       nameLineIdx = i; break;
     }
   }
-
   const parsed = parseWeeklyRow(text, nameLineIdx, lines, targetName);
-
   let out = "";
   if(nameLineIdx >= 0){
     out += `✓ Name "${targetName}" found (line ${nameLineIdx+1})\n`;
@@ -899,7 +1057,6 @@ function finishExtraction(text, output, progress){
     out += `⚠ Name "${targetName}" not found in file.\n`;
     out += "  → Check the name spelling or try a partial name (e.g. just 'Zilani')\n";
   }
-
   out += "\n— Extracted shifts (Mon–Sun) —\n";
   const dayNames = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
   let hasAny = false;
@@ -913,10 +1070,8 @@ function finishExtraction(text, output, progress){
     }
   });
   if(!hasAny) out += "(no shifts detected)\n";
-
   out += "\n— Full extracted text (first 3000 chars) —\n" + text.slice(0,3000);
   output.textContent = out;
-
   if(hasAny && nameLineIdx >= 0){
     window.lastParsedShifts = parsed;
     showImportActions(parsed, targetName);
@@ -929,14 +1084,11 @@ function finishExtraction(text, output, progress){
 function parseWeeklyRow(fullText, nameLineIdx, lines, targetName){
   const result = Array.from({length:7}, () => ({off:false, slots:[]}));
   if(nameLineIdx < 0) return result;
-
   const rowLines = lines.slice(nameLineIdx, Math.min(nameLineIdx+4, lines.length));
   const rowText = rowLines.join(" ");
-
   if(/\bFERIE\b/i.test(rowText) && (rowText.match(/\bFERIE\b/gi)||[]).length >= 5){
     return result.map(() => ({off:true, slots:[]}));
   }
-
   const timeRe = /(\d{1,2})[:.](\d{2})\s*[-–—]\s*(\d{1,2})[:.](\d{2})/g;
   const allPairs = [];
   let m;
@@ -945,7 +1097,6 @@ function parseWeeklyRow(fullText, nameLineIdx, lines, targetName){
     const end = pad(m[3])+":"+pad(m[4]);
     allPairs.push({start, end});
   }
-
   const dayPatterns = [
     /\bLun\b|\bMon\b|\bMonday\b/i,
     /\bMar\b|\bTue\b|\bTuesday\b/i,
@@ -955,7 +1106,6 @@ function parseWeeklyRow(fullText, nameLineIdx, lines, targetName){
     /\bSab\b|\bSat\b|\bSaturday\b/i,
     /\bDom\b|\bSun\b|\bSunday\b/i,
   ];
-
   let headerLine = "";
   for(const l of lines){
     const lc = l.toLowerCase();
@@ -963,14 +1113,12 @@ function parseWeeklyRow(fullText, nameLineIdx, lines, targetName){
       headerLine = l; break;
     }
   }
-
   if(headerLine){
     const colPos = dayPatterns.map(p => {
       const match = headerLine.match(p);
       if(!match) return -1;
       return headerLine.indexOf(match[0]);
     });
-
     rowLines.forEach(line => {
       const timePosRe = /(\d{1,2})[:.](\d{2})\s*[-–—]\s*(\d{1,2})[:.](\d{2})/g;
       let tm;
@@ -978,7 +1126,6 @@ function parseWeeklyRow(fullText, nameLineIdx, lines, targetName){
         const start = pad(tm[1])+":"+pad(tm[2]);
         const end = pad(tm[3])+":"+pad(tm[4]);
         const pos = tm.index;
-
         let dayIdx = -1;
         for(let d=0; d<7; d++){
           const nextCol = colPos.slice(d+1).find(p=>p>colPos[d]) || 9999;
@@ -993,7 +1140,6 @@ function parseWeeklyRow(fullText, nameLineIdx, lines, targetName){
           result[dayIdx].slots.push({start, end});
         }
       }
-
       const offRe = /\bOFF\b/gi;
       let om;
       while((om = offRe.exec(line)) !== null){
@@ -1008,13 +1154,11 @@ function parseWeeklyRow(fullText, nameLineIdx, lines, targetName){
         }
       }
     });
-
   } else {
     allPairs.forEach((p,i) => {
       if(i<7) result[i].slots.push(p);
     });
   }
-
   return result;
 }
 
@@ -1028,11 +1172,9 @@ function showImportActions(parsed, targetName){
     else if(s.slots.length) lines.push(`${dayNames[i]}: ${s.slots.map(x=>x.start+" – "+x.end).join(" | ")}`);
   });
   preview.textContent = lines.join("\n");
-
   const today = new Date();
   const monday = getMonday(today);
   document.getElementById("importWeekStart").value = fmtDate(monday);
-
   row.style.display = "block";
 }
 
@@ -1049,26 +1191,21 @@ window.useMyName = function(){
 window.doAutoImport = async function(){
   const parsed = window.lastParsedShifts;
   if(!parsed){ showToast("No shifts to import"); return; }
-
   const dateVal = document.getElementById("importWeekStart").value;
   if(!dateVal){ alert("Please select the Monday date of that week."); return; }
-
   const weekStart = parseDate(dateVal);
   if(weekStart.getDay() !== 1){
     const mon = getMonday(weekStart);
     document.getElementById("importWeekStart").value = fmtDate(mon);
   }
   const monday = getMonday(weekStart);
-
   const arr = parsed.map(s => {
-    if(s.off) return {off:true, start:"", end:""};
-    if(s.slots.length === 0) return {off:false, start:"", end:""};
-    if(s.slots.length === 1) return {off:false, start:s.slots[0].start, end:s.slots[0].end};
-    return {off:false, start:s.slots[0].start, end:s.slots[s.slots.length-1].end};
+    if(s.off) return {off:true, start:"", end:"", note:""};
+    if(s.slots.length === 0) return {off:false, start:"", end:"", note:""};
+    if(s.slots.length === 1) return {off:false, start:s.slots[0].start, end:s.slots[0].end, note:""};
+    return {off:false, start:s.slots[0].start, end:s.slots[s.slots.length-1].end, note:""};
   });
-
   if(!confirm(`Import ${parsed.filter(s=>!s.off&&s.slots.length).length} shifts for week of ${fmtDisp(monday)}?\nThis will overwrite that week's current data.`)) return;
-
   await setWeek(monday, arr);
   currentWeekStart = monday;
   switchTab("week");
@@ -1083,7 +1220,6 @@ function init(){
   currentWeekStart = getMonday(new Date());
   currentMonth = new Date(currentWeekStart.getFullYear(), currentWeekStart.getMonth(), 1);
   document.getElementById("fileUpload").addEventListener("change", handleFileUpload);
-
   setTimeout(() => {
     if(!window.currentAuthUser && document.getElementById("splash").style.display !== "none"){
       document.getElementById("splash").style.display = "none";
