@@ -4,42 +4,25 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 <title>ZiN W — Plan Your Work</title>
-<meta name="description" content="ZiN W — Free shift planner. Plan your week, track work hours, import schedules." />
 <meta name="theme-color" content="#010409" />
 <link rel="manifest" href="manifest.json" />
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><rect width='200' height='200' rx='44' fill='%23010409'/><g stroke='%2314b8a6' stroke-width='16' stroke-linecap='round' stroke-linejoin='round' fill='none' transform='translate(20,55)'><path d='M 8 14 H 60 L 8 78 H 60'/><line x1='95' y1='44' x2='95' y2='78'/><path d='M 122 78 V 14 L 184 78 V 14'/></g><circle cx='115' cy='77' r='9' fill='%23fbbf24'/></svg>" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><rect width='200' height='200' rx='44' fill='%23010409'/><g stroke='%2314b8a6' stroke-width='16' stroke-linecap='round' stroke-linejoin='round' fill='none' transform='translate(20,55)'><path d='M 8 14 H 60 L 8 78 H 60'/><line x1='95' y1='44' x2='95' y2='78'/><path d='M 122 78 V 14 L 184 78 V 14'/></g><circle cx='115' cy='77' r='9' fill='%23fbbf24'/></svg>" />
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   :root {
-    --bg:#010409;
-    --panel:#0a0d12;
-    --panel-2:#12171f;
-    --border:#1e242d;
-    --text:#e6edf3;
-    --muted:#7d8590;
-    --accent:#14b8a6;
-    --accent-2:#fbbf24;
-    --danger:#f85149;
-    --warn:#d29922;
-    --shadow-sm: none;
-    --shadow-md: none;
-    --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+    --bg:#010409; --panel:#0a0d12; --panel-2:#12171f; --border:#1e242d;
+    --text:#e6edf3; --muted:#7d8590; --accent:#14b8a6; --accent-2:#fbbf24;
+    --danger:#f85149; --warn:#d29922;
+    --shadow-sm:none; --shadow-md:none; --shadow-lg:0 8px 24px rgba(0,0,0,0.5);
   }
   [data-theme="light"] {
-    --bg:#f0f3f7;
-    --panel:#ffffff;
-    --panel-2:#f5f7fa;
-    --border:#e1e6ed;
-    --text:#1a1f26;
-    --muted:#5f6b78;
-    --accent:#0d9488;
-    --accent-2:#b45309;
-    --danger:#c81e1e;
-    --warn:#a16207;
-    --shadow-sm: 0 1px 3px rgba(15,23,42,0.05), 0 1px 2px rgba(15,23,42,0.03);
-    --shadow-md: 0 4px 12px rgba(15,23,42,0.07), 0 1px 3px rgba(15,23,42,0.04);
-    --shadow-lg: 0 16px 40px rgba(15,23,42,0.14), 0 4px 12px rgba(15,23,42,0.06);
+    --bg:#f0f3f7; --panel:#ffffff; --panel-2:#f5f7fa; --border:#e1e6ed;
+    --text:#1a1f26; --muted:#5f6b78; --accent:#0d9488; --accent-2:#b45309;
+    --danger:#c81e1e; --warn:#a16207;
+    --shadow-sm:0 1px 3px rgba(15,23,42,0.05),0 1px 2px rgba(15,23,42,0.03);
+    --shadow-md:0 4px 12px rgba(15,23,42,0.07),0 1px 3px rgba(15,23,42,0.04);
+    --shadow-lg:0 16px 40px rgba(15,23,42,0.14),0 4px 12px rgba(15,23,42,0.06);
   }
   * { box-sizing: border-box; }
   body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:16px; }
@@ -126,11 +109,25 @@
   .menu-work-card .row-line:last-child { margin-bottom:0; }
   .menu-work-card .icon { width:18px; display:inline-block; }
   .menu-work-card strong { color:var(--text); }
+
+  /* Manual assign UI */
+  .assign-list { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+  .assign-item { display:grid; grid-template-columns:1fr 1fr auto; gap:8px; align-items:center; background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:10px 12px; }
+  .assign-item.matched { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 5%,var(--panel)); }
+  .assign-item.skipped { opacity:0.4; }
+  .assign-time { font-family:ui-monospace,Menlo,monospace; font-size:13px; font-weight:600; color:var(--accent-2); }
+  .assign-item select { padding:8px; font-size:13px; }
+  .assign-item .skip-btn { width:auto; padding:6px 10px; font-size:12px; background:transparent; }
+  .assign-hint { font-size:11px; color:var(--muted); margin-bottom:6px; }
+  .assign-actions { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+  .assign-actions button { font-size:12px; padding:6px 10px; }
   @media (max-width: 600px) {
     .day { grid-template-columns:1fr auto; }
     .day .dinfo { grid-column:1/-1; }
     .stats { grid-template-columns:1fr; }
     h1 { font-size:17px; }
+    .assign-item { grid-template-columns:1fr 1fr; }
+    .assign-item .skip-btn { grid-column:1/-1; width:100%; }
   }
 </style>
 </head>
@@ -207,6 +204,9 @@
         Week total: <strong style="color:var(--accent);"><span id="weekTotal">0</span>h</strong>
         <span id="weekSalary" style="margin-left:8px;"></span>
       </div>
+      <div style="margin-top:10px;">
+        <button onclick="exportWeeklyPDF()" style="width:100%;">📄 Export Week as PDF</button>
+      </div>
     </div>
   </div>
 
@@ -227,6 +227,9 @@
           <div class="lbl">🌟 Sunday Hours</div>
           <div class="val" id="mSundayHours" style="color:var(--accent-2); font-size:20px;">0h</div>
         </div>
+      </div>
+      <div style="margin-top:10px;">
+        <button onclick="exportMonthlyPDF()" style="width:100%;">📄 Export Month as PDF</button>
       </div>
     </div>
 
@@ -260,7 +263,11 @@
           <input type="text" id="importName" placeholder="e.g. Mohammed Shajalal Zilani" style="flex:1; min-width:200px;" />
           <button onclick="useMyName()" style="white-space:nowrap; background:var(--accent); color:#fff; border-color:var(--accent); font-weight:600;">Use my name</button>
         </div>
+        <div style="font-size:11px; color:var(--muted); margin-top:4px;">
+          Partial name works too — e.g. only "Zilani" or "Shajalal".
+        </div>
       </div>
+
       <div style="margin-bottom:8px;">
         <label style="font-size:13px; color:var(--text); font-weight:600; display:block; margin-bottom:6px;">📄 Step 2 — Upload schedule file:</label>
         <div class="file-input-wrap">
@@ -271,13 +278,30 @@
       <div id="ocrProgress"></div>
       <div class="warning">⚠ Auto-extraction may have errors — always verify in the Week tab after import.</div>
       <div id="ocrOutput" style="margin-bottom:12px;">No file processed yet.</div>
+
+      <!-- MANUAL ASSIGN -->
       <div id="importActionsRow" style="display:none;">
         <div style="background:var(--panel-2); border:1px solid var(--accent); border-radius:10px; padding:12px;">
-          <div style="font-size:13px; font-weight:600; color:var(--accent); margin-bottom:6px;">✅ Step 3 — Import found shifts:</div>
-          <div id="importPreview" style="font-size:12px; color:var(--muted); margin-bottom:10px;"></div>
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <input type="date" id="importWeekStart" style="flex:1;" />
-            <button class="primary" onclick="doAutoImport()" style="flex:1;">📥 Import to schedule</button>
+          <div style="font-size:13px; font-weight:600; color:var(--accent); margin-bottom:6px;">✅ Step 3 — Assign each shift to a day:</div>
+          <div id="importPreview" style="font-size:12px; color:var(--muted); margin-bottom:10px; white-space:pre-wrap;"></div>
+
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+            <div style="flex:1; min-width:140px;">
+              <label style="font-size:11px;">Week starting (Monday)</label>
+              <input type="date" id="importWeekStart" />
+            </div>
+          </div>
+
+          <div class="assign-hint">💡 Pick a day for each shift. Use "Skip" to ignore wrong/duplicate entries.</div>
+          <div id="assignList" class="assign-list"></div>
+
+          <div class="assign-actions">
+            <button onclick="autoAssignByOrder()" class="ghost">⚡ Auto-assign in order</button>
+            <button onclick="clearAllAssignments()" class="ghost">🗑 Clear all</button>
+          </div>
+
+          <div style="display:flex; gap:8px; margin-top:12px;">
+            <button class="primary" onclick="doManualImport()" style="flex:1;">📥 Import to schedule</button>
           </div>
         </div>
       </div>
@@ -365,9 +389,9 @@
     <div class="modal-section">
       <div class="section-label">🏢 Work Info <span style="color:var(--muted); font-weight:500; text-transform:none; letter-spacing:0;">(optional)</span></div>
       <label>Company name</label>
-      <input type="text" id="setCompany" placeholder="e.g. Whole Quality SRL" maxlength="60" />
+      <input type="text" id="setCompany" placeholder="e.g. McDonald's" maxlength="60" />
       <label style="margin-top:8px;">Place</label>
-      <input type="text" id="setCompanyPlace" placeholder="e.g. Tradate (VA)" maxlength="60" />
+      <input type="text" id="setCompanyPlace" placeholder="e.g. Como (CO)" maxlength="60" />
       <label style="margin-top:8px;">Position / Level</label>
       <input type="text" id="setPosition" placeholder="e.g. Level 5 · Crew" maxlength="60" />
     </div>
@@ -498,8 +522,9 @@ onAuthStateChanged(auth, async (user) => {
 
 <script>
 "use strict";
-const K_THEME = "zw_theme_v7";
+const K_THEME = "zw_theme_v8";
 const DAY_FULL = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const DAY_SHORT = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 
 let currentWeekStart = null;
 let currentMonth = null;
@@ -511,6 +536,7 @@ let unsubscribeListener = null;
 let authMode = "signin";
 let alarmCheckInterval = null;
 let firedAlarms = {};
+let pendingShifts = []; // { start, end, day: 0-6 or -1 for skip }
 
 const pad = n => String(n).padStart(2,"0");
 const fmtDate = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
@@ -543,16 +569,7 @@ function toggleTheme(){
 window.toggleTheme = toggleTheme;
 
 function defaultSettings(){
-  return {
-    currency: "€",
-    hourlyRate: 0,
-    targetWeekly: 0,
-    alarmEnabled: false,
-    alarmBefore: 30,
-    company: "",
-    companyPlace: "",
-    position: ""
-  };
+  return { currency:"€", hourlyRate:0, targetWeekly:0, alarmEnabled:false, alarmBefore:30, company:"", companyPlace:"", position:"" };
 }
 
 window.onUserSignedIn = async function(){
@@ -663,21 +680,15 @@ function updateWorkInfoDisplay(){
   const place = (s.companyPlace || "").trim();
   const position = (s.position || "").trim();
 
-  // Header line under brand
   const el = document.getElementById("workInfoLine");
   const parts = [];
   if(position) parts.push(escapeHtml(position));
   if(company) parts.push(escapeHtml(company));
   let line = parts.join(' <span class="sep">·</span> ');
   if(place) line += (line ? '<span class="sep">·</span>' : '') + escapeHtml(place);
-  if(line){
-    el.innerHTML = line;
-    el.style.display = "block";
-  } else {
-    el.style.display = "none";
-  }
+  if(line){ el.innerHTML = line; el.style.display = "block"; }
+  else { el.style.display = "none"; }
 
-  // Menu modal card
   const card = document.getElementById("menuWorkCard");
   let any = false;
   if(company){ document.getElementById("mwcCompany").style.display = "block"; document.getElementById("mwcCompanyVal").textContent = company; any = true; }
@@ -980,6 +991,7 @@ window.saveSettings = async function(){
   } catch(e){ showToast("Save failed: " + e.message); }
 };
 
+// ============ ALARM ============
 function startAlarmChecker(){
   if(alarmCheckInterval) clearInterval(alarmCheckInterval);
   alarmCheckInterval = setInterval(checkAlarms, 30000);
@@ -1050,6 +1062,7 @@ window.testAlarm = function(){
   showNotif("⏰ Test Alarm", "This is how your shift reminder will look.");
 };
 
+// ============ MENU ============
 window.openMenuModal = function(){
   document.getElementById("ownerMenu").style.display = window.isOwner ? "block" : "none";
   updateWorkInfoDisplay();
@@ -1105,9 +1118,11 @@ document.addEventListener("keydown", (e) => {
   if(e.key === "Escape"){ document.querySelectorAll(".modal-bg.show").forEach(m => m.classList.remove("show")); }
 });
 
+// ============ OCR / IMPORT ============
 if(typeof pdfjsLib !== "undefined"){
   pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 }
+
 function handleFileUpload(){
   const file = document.getElementById("fileUpload").files[0];
   if(!file) return;
@@ -1117,6 +1132,7 @@ function handleFileUpload(){
   if(file.type === "application/pdf") processPDF(file, progress, output);
   else processImage(file, progress, output);
 }
+
 async function processPDF(file, progress, output){
   try {
     if(typeof pdfjsLib === "undefined"){ output.textContent="PDF library not loaded."; progress.textContent=""; return; }
@@ -1128,26 +1144,13 @@ async function processPDF(file, progress, output){
       progress.textContent = `Page ${p}/${pdf.numPages}...`;
       const page = await pdf.getPage(p);
       const c = await page.getTextContent();
+      // Better: add separator between items to avoid joining numbers/words
       fullText += c.items.map(i=>i.str).join(" ") + "\n";
     }
-    if(fullText.trim().length > 30) finishExtraction(fullText, output, progress);
-    else {
-      progress.textContent = "PDF has no text — running OCR...";
-      let txt = "";
-      for(let p=1; p<=pdf.numPages; p++){
-        const page = await pdf.getPage(p);
-        const vp = page.getViewport({ scale: 2 });
-        const canvas = document.createElement("canvas");
-        canvas.width = vp.width; canvas.height = vp.height;
-        await page.render({ canvasContext: canvas.getContext("2d"), viewport: vp }).promise;
-        progress.textContent = `OCR page ${p}/${pdf.numPages}...`;
-        const r = await Tesseract.recognize(canvas, "eng");
-        txt += r.data.text + "\n";
-      }
-      finishExtraction(txt, output, progress);
-    }
+    finishExtraction(fullText, output, progress);
   } catch(err){ output.textContent = "PDF failed: " + err.message; progress.textContent=""; }
 }
+
 function processImage(file, progress, output){
   if(typeof Tesseract === "undefined"){ output.textContent="OCR not loaded."; progress.textContent=""; return; }
   Tesseract.recognize(file, "eng", {
@@ -1155,115 +1158,213 @@ function processImage(file, progress, output){
   }).then(({data:{text}})=>finishExtraction(text,output,progress))
    .catch(e=>{output.textContent="OCR failed: "+e.message; progress.textContent="";});
 }
-window.lastParsedShifts = null;
 
 function finishExtraction(text, output, progress){
   progress.textContent = "Done.";
+
   const filterInput = document.getElementById("importName");
   const targetName = (filterInput && filterInput.value.trim()) ? filterInput.value.trim() : ((viewingData && viewingData.name) || "");
+
+  // Extract year from "dal DD/MM/YYYY al DD/MM/YYYY"
+  let year = new Date().getFullYear();
+  const yearMatch = text.match(/dal\s+\d{1,2}\/\d{1,2}\/(\d{4})/i);
+  if(yearMatch) year = parseInt(yearMatch[1]);
+
+  // Extract week start date from "dal DD/MM/YYYY"
+  let weekStartFromPDF = null;
+  const startMatch = text.match(/dal\s+(\d{1,2})\/(\d{1,2})\/(\d{4})/i);
+  if(startMatch){
+    weekStartFromPDF = new Date(parseInt(startMatch[3]), parseInt(startMatch[2])-1, parseInt(startMatch[1]));
+  }
+
+  // Find name line
   const lines = text.split(/\r?\n/).filter(l=>l.trim().length);
   const targetLower = targetName.toLowerCase();
   const targetParts = targetLower.split(/\s+/).filter(p=>p.length>3);
+
   let nameLineIdx = -1;
   for(let i=0;i<lines.length;i++){
     const low = lines[i].toLowerCase();
-    if((targetLower && low.includes(targetLower)) || targetParts.some(p=>low.includes(p))){ nameLineIdx = i; break; }
+    if((targetLower && low.includes(targetLower)) || targetParts.some(p=>low.includes(p))){
+      nameLineIdx = i; break;
+    }
   }
-  const parsed = parseWeeklyRow(text, nameLineIdx, lines, targetName);
-  let out = "";
-  if(nameLineIdx >= 0) out += `✓ Name "${targetName}" found (line ${nameLineIdx+1})\n`;
-  else out += `⚠ Name "${targetName}" not found in file.\n`;
-  out += "\n— Extracted shifts (Mon–Sun) —\n";
-  const dayNames = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-  let hasAny = false;
-  parsed.forEach((s,i) => {
-    if(s.off){ out += `${dayNames[i]}: OFF\n`; hasAny=true; }
-    else if(s.slots && s.slots.length){ out += `${dayNames[i]}: ${s.slots.map(x=>x.start+" – "+x.end).join(" | ")}\n`; hasAny = true; }
-    else out += `${dayNames[i]}: —\n`;
-  });
-  if(!hasAny) out += "(no shifts detected)\n";
-  out += "\n— Full extracted text (first 3000 chars) —\n" + text.slice(0,3000);
-  output.textContent = out;
-  if(hasAny && nameLineIdx >= 0){ window.lastParsedShifts = parsed; showImportActions(parsed, targetName); }
-  else { document.getElementById("importActionsRow").style.display = "none"; window.lastParsedShifts = null; }
-}
 
-function parseWeeklyRow(fullText, nameLineIdx, lines, targetName){
-  const result = Array.from({length:7}, () => ({off:false, slots:[]}));
-  if(nameLineIdx < 0) return result;
-  const rowLines = lines.slice(nameLineIdx, Math.min(nameLineIdx+4, lines.length));
-  const rowText = rowLines.join(" ");
-  if(/\bFERIE\b/i.test(rowText) && (rowText.match(/\bFERIE\b/gi)||[]).length >= 5){
-    return result.map(() => ({off:true, slots:[]}));
+  // Extract times from name row
+  pendingShifts = [];
+  let out = "";
+
+  if(nameLineIdx < 0){
+    out += `⚠ Name "${targetName}" not found in file.\n`;
+    out += "   Try a shorter part of the name (e.g. just 'Zilani').\n";
+    output.textContent = out;
+    document.getElementById("importActionsRow").style.display = "none";
+    return;
   }
+
+  out += `✓ Name "${targetName}" found (line ${nameLineIdx+1})\n`;
+
+  const rowLines = lines.slice(nameLineIdx, Math.min(nameLineIdx+3, lines.length));
+  const rowText = rowLines.join(" ");
+
+  // Extract ALL time pairs (multi-shift support: "12:00 - 16:00 16:30 - 20:30")
   const timeRe = /(\d{1,2})[:.](\d{2})\s*[-–—]\s*(\d{1,2})[:.](\d{2})/g;
-  const allPairs = [];
   let m;
   while((m = timeRe.exec(rowText)) !== null){
     const start = pad(m[1])+":"+pad(m[2]);
     const end = pad(m[3])+":"+pad(m[4]);
-    allPairs.push({start, end});
+    pendingShifts.push({ start, end, day: -1 });
   }
-  const dayPatterns = [
-    /\bLun\b|\bMon\b|\bMonday\b/i, /\bMar\b|\bTue\b|\bTuesday\b/i,
-    /\bMer\b|\bWed\b|\bWednesday\b/i, /\bGio\b|\bThu\b|\bThursday\b/i,
-    /\bVen\b|\bFri\b|\bFriday\b/i, /\bSab\b|\bSat\b|\bSaturday\b/i,
-    /\bDom\b|\bSun\b|\bSunday\b/i
-  ];
-  let headerLine = "";
-  for(const l of lines){
-    const lc = l.toLowerCase();
-    if((lc.includes("lun") || lc.includes("mon")) && (lc.includes("mar") || lc.includes("tue"))){ headerLine = l; break; }
-  }
-  if(headerLine){
-    const colPos = dayPatterns.map(p => { const match = headerLine.match(p); if(!match) return -1; return headerLine.indexOf(match[0]); });
-    rowLines.forEach(line => {
-      const timePosRe = /(\d{1,2})[:.](\d{2})\s*[-–—]\s*(\d{1,2})[:.](\d{2})/g;
-      let tm;
-      while((tm = timePosRe.exec(line)) !== null){
-        const start = pad(tm[1])+":"+pad(tm[2]);
-        const end = pad(tm[3])+":"+pad(tm[4]);
-        const pos = tm.index;
-        let dayIdx = -1;
-        for(let d=0; d<7; d++){
-          const nextCol = colPos.slice(d+1).find(p=>p>colPos[d]) || 9999;
-          if(colPos[d]>=0 && pos >= colPos[d] && pos < nextCol){ dayIdx = d; break; }
-        }
-        if(dayIdx === -1) dayIdx = result.findIndex(r => !r.off && r.slots.length === 0);
-        if(dayIdx >= 0 && dayIdx < 7) result[dayIdx].slots.push({start, end});
-      }
-      const offRe = /\bOFF\b/gi;
-      let om;
-      while((om = offRe.exec(line)) !== null){
-        const pos = om.index;
-        let dayIdx = -1;
-        for(let d=0; d<7; d++){
-          const nextCol = colPos.slice(d+1).find(p=>p>colPos[d]) || 9999;
-          if(colPos[d]>=0 && pos >= colPos[d] && pos < nextCol){ dayIdx=d; break; }
-        }
-        if(dayIdx>=0 && dayIdx<7 && result[dayIdx].slots.length===0) result[dayIdx].off = true;
-      }
-    });
+
+  out += `\n📊 Extracted ${pendingShifts.length} shift(s):\n`;
+  if(pendingShifts.length === 0){
+    out += "(none found — check that the name matches exactly)\n";
   } else {
-    allPairs.forEach((p,i) => { if(i<7) result[i].slots.push(p); });
+    pendingShifts.forEach((s, i) => {
+      out += `  ${i+1}. ${s.start} – ${s.end}\n`;
+    });
   }
-  return result;
+
+  out += `\n📅 Week detected: ${weekStartFromPDF ? fmtDisp(weekStartFromPDF) : "unknown"}\n`;
+  out += `🗓 Year from PDF: ${year}\n`;
+  out += "\n👇 Assign each shift to a day in the panel below.";
+  output.textContent = out;
+
+  if(pendingShifts.length > 0){
+    // Pre-fill week start
+    const weekStartEl = document.getElementById("importWeekStart");
+    if(weekStartFromPDF){
+      const monday = getMonday(weekStartFromPDF);
+      weekStartEl.value = fmtDate(monday);
+    } else {
+      weekStartEl.value = fmtDate(getMonday(new Date()));
+    }
+
+    // Render manual assign UI
+    renderAssignList();
+    document.getElementById("importActionsRow").style.display = "block";
+  } else {
+    document.getElementById("importActionsRow").style.display = "none";
+  }
 }
 
-function showImportActions(parsed, targetName){
-  const row = document.getElementById("importActionsRow");
-  const preview = document.getElementById("importPreview");
-  const dayNames = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-  let lines = [`Shifts found for: ${targetName}`,""];
-  parsed.forEach((s,i) => {
-    if(s.off) lines.push(`${dayNames[i]}: OFF`);
-    else if(s.slots.length) lines.push(`${dayNames[i]}: ${s.slots.map(x=>x.start+" – "+x.end).join(" | ")}`);
+function renderAssignList(){
+  const list = document.getElementById("assignList");
+  list.innerHTML = "";
+  pendingShifts.forEach((s, idx) => {
+    const item = document.createElement("div");
+    item.className = "assign-item";
+    if(s.day >= 0) item.classList.add("matched");
+    if(s.day === -2) item.classList.add("skipped"); // -2 = skip
+
+    const timeDiv = document.createElement("div");
+    timeDiv.className = "assign-time";
+    timeDiv.textContent = `${s.start} – ${s.end}`;
+
+    const select = document.createElement("select");
+    select.innerHTML = `<option value="-1">— pick a day —</option>` +
+      DAY_SHORT.map((d, i) => `<option value="${i}">${d}</option>`).join("") +
+      `<option value="-2">🚫 Skip this</option>`;
+    select.value = String(s.day);
+    select.onchange = () => {
+      s.day = parseInt(select.value);
+      renderAssignList();
+    };
+
+    const skipBtn = document.createElement("button");
+    skipBtn.className = "skip-btn";
+    skipBtn.textContent = s.day === -2 ? "↩ Unskip" : "🚫";
+    skipBtn.title = "Skip this shift";
+    skipBtn.onclick = () => {
+      s.day = s.day === -2 ? -1 : -2;
+      renderAssignList();
+    };
+
+    item.appendChild(timeDiv);
+    item.appendChild(select);
+    item.appendChild(skipBtn);
+    list.appendChild(item);
   });
-  preview.textContent = lines.join("\n");
-  const monday = getMonday(new Date());
-  document.getElementById("importWeekStart").value = fmtDate(monday);
-  row.style.display = "block";
 }
+
+window.autoAssignByOrder = function(){
+  // Smart: try Mon-Sun in order, skipping days already used
+  const used = new Set();
+  pendingShifts.forEach(s => {
+    if(s.day >= 0) used.add(s.day);
+  });
+  let nextDay = 0;
+  pendingShifts.forEach(s => {
+    if(s.day >= 0) return;
+    // Find next available day
+    while(nextDay < 7 && used.has(nextDay)) nextDay++;
+    if(nextDay < 7){
+      s.day = nextDay;
+      used.add(nextDay);
+      nextDay++;
+    } else {
+      s.day = -2; // skip if no room
+    }
+  });
+  renderAssignList();
+  showToast("Auto-assigned in order");
+};
+
+window.clearAllAssignments = function(){
+  pendingShifts.forEach(s => s.day = -1);
+  renderAssignList();
+};
+
+window.doManualImport = async function(){
+  if(pendingShifts.length === 0){ showToast("No shifts to import"); return; }
+  const dateVal = document.getElementById("importWeekStart").value;
+  if(!dateVal){ alert("Please select the Monday date."); return; }
+  const monday = getMonday(parseDate(dateVal));
+
+  // Build week array
+  const arr = Array.from({length:7}, () => emptyDay());
+
+  const assigned = pendingShifts.filter(s => s.day >= 0);
+  const skipped = pendingShifts.filter(s => s.day === -2);
+
+  if(assigned.length === 0){
+    alert("Please assign at least one shift to a day before importing.");
+    return;
+  }
+
+  // For each day, if multiple shifts, take earliest start & latest end (span)
+  const dayMap = {}; // day -> [{start, end}]
+  assigned.forEach(s => {
+    if(!dayMap[s.day]) dayMap[s.day] = [];
+    dayMap[s.day].push({ start: s.start, end: s.end });
+  });
+
+  Object.keys(dayMap).forEach(dayStr => {
+    const day = parseInt(dayStr);
+    const shifts = dayMap[day];
+    // Sort by start time
+    shifts.sort((a, b) => a.start.localeCompare(b.start));
+    arr[day] = {
+      off: false,
+      start: shifts[0].start,
+      end: shifts[shifts.length - 1].end,
+      note: shifts.length > 1 ? `${shifts.length} shifts: ${shifts.map(x=>x.start+"-"+x.end).join(", ")}` : ""
+    };
+  });
+
+  const msg = `Import ${assigned.length} shifts for week of ${fmtDisp(monday)}?` +
+    (skipped.length ? `\n(${skipped.length} skipped)` : "") +
+    `\nThis will overwrite that week's current data.`;
+  if(!confirm(msg)) return;
+
+  await setWeek(monday, arr);
+  currentWeekStart = monday;
+  switchTab("week");
+  renderWeek();
+  showToast(`✅ ${assigned.length} shift(s) imported!`);
+  pendingShifts = [];
+  document.getElementById("importActionsRow").style.display = "none";
+};
 
 window.useMyName = function(){
   const name = (viewingData && viewingData.name) || "";
@@ -1271,28 +1372,249 @@ window.useMyName = function(){
   else showToast("Please sign in first");
 };
 
-window.doAutoImport = async function(){
-  const parsed = window.lastParsedShifts;
-  if(!parsed){ showToast("No shifts to import"); return; }
-  const dateVal = document.getElementById("importWeekStart").value;
-  if(!dateVal){ alert("Please select the Monday date."); return; }
-  const weekStart = parseDate(dateVal);
-  const monday = getMonday(weekStart);
-  const arr = parsed.map(s => {
-    if(s.off) return {off:true, start:"", end:"", note:""};
-    if(s.slots.length === 0) return emptyDay();
-    if(s.slots.length === 1) return {off:false, start:s.slots[0].start, end:s.slots[0].end, note:""};
-    return {off:false, start:s.slots[0].start, end:s.slots[s.slots.length-1].end, note:""};
+// ============ PDF EXPORT ============
+window.exportWeeklyPDF = function(){
+  if(!currentWeekStart){ showToast("No week selected"); return; }
+  const arr = getWeek(currentWeekStart);
+  const wEnd = addDays(currentWeekStart, 6);
+  const s = (viewingData && viewingData.settings) || {};
+  const sym = s.currency || "€";
+  const rate = s.hourlyRate || 0;
+  const name = (viewingData && viewingData.name) || "User";
+  const company = s.company || "";
+  const place = s.companyPlace || "";
+  const position = s.position || "";
+
+  let totalHours = 0;
+  let sundayHours = 0;
+  let shiftCount = 0;
+  let rowsHtml = "";
+
+  arr.forEach((shift, i) => {
+    const d = addDays(currentWeekStart, i);
+    let timeStr = "—";
+    let hrs = 0;
+    if(shift.off){ timeStr = "OFF"; }
+    else if(shift.start && shift.end){
+      timeStr = `${shift.start} – ${shift.end}`;
+      hrs = hoursBetween(shift.start, shift.end);
+      totalHours += hrs;
+      shiftCount++;
+      if(i === 6) sundayHours += hrs;
+    }
+    const note = shift.note ? `<br><span style="color:#666; font-size:11px; font-style:italic;">📝 ${escapeHtml(shift.note)}</span>` : "";
+    const isToday = d.toDateString() === new Date().toDateString();
+    rowsHtml += `
+      <tr style="${isToday ? 'background:#fff8e1;' : ''}">
+        <td style="padding:10px; border-bottom:1px solid #e5e7eb; font-weight:600;">${DAY_FULL[i]}</td>
+        <td style="padding:10px; border-bottom:1px solid #e5e7eb;">${fmtDisp(d)}</td>
+        <td style="padding:10px; border-bottom:1px solid #e5e7eb; color:${shift.off ? '#888' : '#0d9488'}; font-weight:600;">${timeStr}${note}</td>
+        <td style="padding:10px; border-bottom:1px solid #e5e7eb; text-align:right;">${hrs ? hrs.toFixed(1)+"h" : "—"}</td>
+        <td style="padding:10px; border-bottom:1px solid #e5e7eb; text-align:right;">${hrs && rate ? sym+(hrs*rate).toFixed(2) : "—"}</td>
+      </tr>`;
   });
-  if(!confirm(`Import ${parsed.filter(s=>!s.off&&s.slots.length).length} shifts for week of ${fmtDisp(monday)}?`)) return;
-  await setWeek(monday, arr);
-  currentWeekStart = monday;
-  switchTab("week");
-  renderWeek();
-  showToast("✅ Shifts imported!");
-  window.lastParsedShifts = null;
-  document.getElementById("importActionsRow").style.display = "none";
+
+  const salary = totalHours * rate;
+  const sundayExtra = sundayHours * rate * 0.1;
+  const infoLine = [position, company, place].filter(Boolean).join(" · ");
+
+  const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Weekly Report — ${fmtDisp(currentWeekStart)}</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 30px; color: #1a1f26; }
+  h1 { font-size: 22px; margin: 0; color: #0d9488; }
+  .sub { color: #666; font-size: 12px; margin-top: 4px; }
+  .info { background: #f0f3f7; padding: 10px 14px; border-radius: 8px; margin: 14px 0; font-size: 12px; }
+  table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px; }
+  th { background: #0d9488; color: #fff; padding: 10px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  th:not(:first-child) { text-align: right; }
+  td:not(:first-child):not(:nth-child(2)) { text-align: right; }
+  .totals { background: #0d9488; color: #fff; padding: 14px; border-radius: 8px; font-size: 14px; }
+  .totals strong { font-size: 20px; }
+  .footer { color: #888; font-size: 10px; text-align: center; margin-top: 30px; }
+  @media print { body { margin: 12mm; } button { display: none; } }
+  button { background: #0d9488; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; cursor: pointer; margin-right: 8px; }
+</style>
+</head><body>
+  <h1>📅 ZiN W — Weekly Report</h1>
+  <div class="sub">${fmtDisp(currentWeekStart)} — ${fmtDisp(wEnd)}</div>
+
+  <div class="info">
+    <strong>${escapeHtml(name)}</strong>
+    ${infoLine ? `<br>${escapeHtml(infoLine)}` : ""}
+  </div>
+
+  <div style="margin: 16px 0;">
+    <button onclick="window.print()">🖨 Print / Save as PDF</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Day</th>
+        <th>Date</th>
+        <th style="text-align:left;">Shift</th>
+        <th style="text-align:right;">Hours</th>
+        <th style="text-align:right;">Pay</th>
+      </tr>
+    </thead>
+    <tbody>${rowsHtml}</tbody>
+  </table>
+
+  <div class="totals">
+    <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+      <span>Total shifts: <strong>${shiftCount}</strong></span>
+      <span>Total hours: <strong>${totalHours.toFixed(1)}h</strong></span>
+    </div>
+    ${sundayHours > 0 ? `<div style="font-size:12px; opacity:0.9;">Sunday hours: ${sundayHours.toFixed(1)}h (extra +10%)</div>` : ""}
+    ${rate ? `<div style="font-size:12px; opacity:0.9; margin-top:6px;">Rate: ${sym}${rate}/h</div>` : ""}
+    ${rate ? `<div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.3);">Estimated gross: <strong>${sym}${(salary + sundayExtra).toFixed(2)}</strong></div>` : ""}
+  </div>
+
+  <div class="footer">Generated by ZiN W — Plan Your Work · ${new Date().toLocaleString()}</div>
+</body></html>`;
+
+  openPrintWindow(html);
 };
+
+window.exportMonthlyPDF = function(){
+  if(!currentMonth){ showToast("No month selected"); return; }
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+  const s = (viewingData && viewingData.settings) || {};
+  const sym = s.currency || "€";
+  const rate = s.hourlyRate || 0;
+  const name = (viewingData && viewingData.name) || "User";
+  const company = s.company || "";
+  const place = s.companyPlace || "";
+  const position = s.position || "";
+
+  const all = (viewingData && viewingData.shifts) || {};
+  const monthLabel = currentMonth.toLocaleString("en-US",{month:"long",year:"numeric"});
+
+  // Collect all days in month
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month+1, 0);
+  const days = [];
+  for(let d = new Date(firstDay); d <= lastDay; d = addDays(d, 1)){
+    const key = fmtDate(d);
+    const weekKey = fmtDate(getMonday(d));
+    const weekArr = all[weekKey] || [];
+    const dayIdx = (d.getDay() + 6) % 7;
+    const shift = weekArr[dayIdx] || emptyDay();
+    days.push({ date: new Date(d), shift, dayIdx });
+  }
+
+  let totalHours = 0, sundayHours = 0, shiftCount = 0, workDays = 0;
+  let rowsHtml = "";
+
+  days.forEach(({date, shift, dayIdx}) => {
+    let timeStr = "—";
+    let hrs = 0;
+    let isWork = false;
+    if(shift.off){ timeStr = "OFF"; }
+    else if(shift.start && shift.end){
+      timeStr = `${shift.start} – ${shift.end}`;
+      hrs = hoursBetween(shift.start, shift.end);
+      totalHours += hrs;
+      shiftCount++;
+      workDays++;
+      isWork = true;
+      if(dayIdx === 6) sundayHours += hrs;
+    } else {
+      timeStr = "—";
+    }
+    const isWeekend = (dayIdx === 5 || dayIdx === 6);
+    const isToday = date.toDateString() === new Date().toDateString();
+    const bg = isToday ? '#fff8e1' : (isWeekend ? '#fafafa' : '');
+    const note = shift.note ? `<br><span style="color:#666; font-size:10px; font-style:italic;">📝 ${escapeHtml(shift.note)}</span>` : "";
+    rowsHtml += `
+      <tr style="background:${bg};">
+        <td style="padding:8px 10px; border-bottom:1px solid #eee; font-weight:600; font-size:12px;">${DAY_SHORT[dayIdx]}</td>
+        <td style="padding:8px 10px; border-bottom:1px solid #eee; font-size:12px;">${fmtDisp(date)}</td>
+        <td style="padding:8px 10px; border-bottom:1px solid #eee; color:${isWork ? '#0d9488' : '#888'}; font-weight:600; font-size:12px;">${timeStr}${note}</td>
+        <td style="padding:8px 10px; border-bottom:1px solid #eee; text-align:right; font-size:12px;">${hrs ? hrs.toFixed(1)+"h" : "—"}</td>
+      </tr>`;
+  });
+
+  const salary = totalHours * rate;
+  const sundayExtra = sundayHours * rate * 0.1;
+  const infoLine = [position, company, place].filter(Boolean).join(" · ");
+
+  const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Monthly Report — ${monthLabel}</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 25px; color: #1a1f26; }
+  h1 { font-size: 22px; margin: 0; color: #0d9488; }
+  .sub { color: #666; font-size: 12px; margin-top: 4px; }
+  .info { background: #f0f3f7; padding: 10px 14px; border-radius: 8px; margin: 14px 0; font-size: 12px; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 12px; }
+  th { background: #0d9488; color: #fff; padding: 9px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  th:not(:first-child):not(:nth-child(2)):not(:nth-child(3)) { text-align: right; }
+  td:not(:first-child):not(:nth-child(2)):not(:nth-child(3)) { text-align: right; }
+  .summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 16px 0; }
+  .stat { background: #f0f3f7; padding: 12px; border-radius: 8px; text-align: center; }
+  .stat .l { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat .v { font-size: 18px; font-weight: 700; color: #0d9488; margin-top: 4px; }
+  .totals { background: #0d9488; color: #fff; padding: 14px; border-radius: 8px; font-size: 14px; }
+  .footer { color: #888; font-size: 10px; text-align: center; margin-top: 24px; }
+  @media print { body { margin: 12mm; } button { display: none; } }
+  button { background: #0d9488; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; cursor: pointer; margin-right: 8px; }
+</style>
+</head><body>
+  <h1>📊 ZiN W — Monthly Report</h1>
+  <div class="sub">${monthLabel}</div>
+
+  <div class="info">
+    <strong>${escapeHtml(name)}</strong>
+    ${infoLine ? `<br>${escapeHtml(infoLine)}` : ""}
+  </div>
+
+  <div style="margin: 14px 0;">
+    <button onclick="window.print()">🖨 Print / Save as PDF</button>
+  </div>
+
+  <div class="summary">
+    <div class="stat"><div class="l">Work Days</div><div class="v">${workDays}</div></div>
+    <div class="stat"><div class="l">Total Hours</div><div class="v">${totalHours.toFixed(1)}h</div></div>
+    <div class="stat"><div class="l">Sunday Hours</div><div class="v">${sundayHours.toFixed(1)}h</div></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Day</th>
+        <th>Date</th>
+        <th style="text-align:left;">Shift</th>
+        <th style="text-align:right;">Hours</th>
+      </tr>
+    </thead>
+    <tbody>${rowsHtml}</tbody>
+  </table>
+
+  <div class="totals">
+    <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+      <span>Shifts: <strong>${shiftCount}</strong></span>
+      <span>Total: <strong>${totalHours.toFixed(1)}h</strong></span>
+    </div>
+    ${sundayHours > 0 ? `<div style="font-size:12px; opacity:0.9;">Sunday hours: ${sundayHours.toFixed(1)}h (extra +10%)</div>` : ""}
+    ${rate ? `<div style="font-size:12px; opacity:0.9; margin-top:6px;">Rate: ${sym}${rate}/h</div>` : ""}
+    ${rate ? `<div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.3);">Estimated gross: <strong>${sym}${(salary + sundayExtra).toFixed(2)}</strong></div>` : ""}
+  </div>
+
+  <div class="footer">Generated by ZiN W — Plan Your Work · ${new Date().toLocaleString()}</div>
+</body></html>`;
+
+  openPrintWindow(html);
+};
+
+function openPrintWindow(html){
+  const win = window.open("", "_blank");
+  if(!win){ showToast("Popup blocked — allow popups for this site"); return; }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+}
 
 function init(){
   applyTheme(localStorage.getItem(K_THEME) || "dark");
