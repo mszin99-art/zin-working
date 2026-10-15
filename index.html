@@ -1,26 +1,1510 @@
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<title>ZiN W — Plan Your Work</title>
+<meta name="theme-color" content="#010409" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><rect width='200' height='200' rx='44' fill='%23010409'/><g stroke='%2314b8a6' stroke-width='16' stroke-linecap='round' stroke-linejoin='round' fill='none' transform='translate(20,55)'><path d='M 8 14 H 60 L 8 78 H 60'/><line x1='95' y1='44' x2='95' y2='78'/><path d='M 122 78 V 14 L 184 78 V 14'/></g><circle cx='115' cy='77' r='9' fill='%23fbbf24'/></svg>" />
+<style>
+  :root {
+    --bg:#010409; --panel:#0a0d12; --panel-2:#12171f; --border:#1e242d;
+    --text:#e6edf3; --muted:#7d8590; --accent:#14b8a6; --accent-2:#fbbf24;
+    --danger:#f85149; --warn:#d29922;
+    --shadow-sm:none; --shadow-lg:0 8px 24px rgba(0,0,0,0.5);
+  }
+  [data-theme="light"] {
+    --bg:#f0f3f7; --panel:#ffffff; --panel-2:#f5f7fa; --border:#e1e6ed;
+    --text:#1a1f26; --muted:#5f6b78; --accent:#0d9488; --accent-2:#b45309;
+    --danger:#c81e1e; --warn:#a16207;
+    --shadow-sm:0 1px 3px rgba(15,23,42,0.05),0 1px 2px rgba(15,23,42,0.03);
+    --shadow-lg:0 16px 40px rgba(15,23,42,0.14),0 4px 12px rgba(15,23,42,0.06);
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:16px; }
+  .container { max-width:920px; margin:0 auto; }
+  header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; gap:12px; flex-wrap:wrap; }
+  .brand { display:flex; align-items:center; gap:12px; }
+  .logo { width:52px; height:44px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .brand-text { display:flex; flex-direction:column; line-height:1.1; }
+  h1 { margin:0; font-size:20px; font-weight:700; letter-spacing:0.3px; }
+  h1 .accent { background:linear-gradient(90deg,var(--accent),var(--accent-2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .slogan { font-size:10px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-top:4px; font-weight:500; }
+  .work-info-line { font-size:11px; color:var(--accent); margin-top:5px; font-weight:600; letter-spacing:0.2px; display:none; }
+  .work-info-line .sep { color:var(--muted); opacity:0.6; margin:0 4px; }
+  .user-pill { position:relative; background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:6px 12px; font-size:13px; color:var(--muted); display:inline-flex; align-items:center; gap:8px; cursor:pointer; box-shadow:var(--shadow-sm); }
+  .user-pill strong { color:var(--text); }
+  .user-pill.owner { border-color:var(--accent); }
+  .pill-badge { background:var(--danger); color:#fff; font-size:10px; font-weight:700; min-width:18px; height:18px; padding:0 5px; border-radius:9px; display:none; align-items:center; justify-content:center; margin-left:2px; }
+  .pill-badge.show { display:inline-flex; }
+  .icon-btn { background:var(--panel); border:1px solid var(--border); color:var(--text); width:36px; height:36px; border-radius:8px; cursor:pointer; font-size:16px; display:inline-flex; align-items:center; justify-content:center; box-shadow:var(--shadow-sm); }
+  .icon-btn:hover { border-color:var(--accent); }
+  .owner-badge { background:var(--accent); color:var(--bg); font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; margin-left:6px; text-transform:uppercase; }
+  .owner-bar { background:var(--panel); border:1px solid var(--accent); border-radius:10px; padding:10px 12px; margin-bottom:14px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; box-shadow:var(--shadow-sm); }
+  .owner-bar .label { font-size:12px; color:var(--accent); font-weight:600; }
+  .tabs { display:flex; gap:4px; background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:4px; margin-bottom:16px; box-shadow:var(--shadow-sm); }
+  .tab { flex:1; padding:10px; background:transparent; border:none; color:var(--muted); border-radius:7px; cursor:pointer; font-size:13px; font-weight:600; }
+  .tab.active { background:var(--panel-2); color:var(--text); }
+  .panel { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:14px; box-shadow:var(--shadow-sm); }
+  .panel h2 { margin:0 0 12px 0; font-size:13px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; }
+  button { background:var(--panel-2); color:var(--text); border:1px solid var(--border); padding:8px 14px; border-radius:8px; cursor:pointer; font-size:14px; font-family:inherit; box-shadow:var(--shadow-sm); }
+  button:hover { border-color:var(--accent); }
+  button.primary { background:var(--accent); color:#fff; border-color:var(--accent); font-weight:600; }
+  [data-theme="light"] button.primary { color:#ffffff; }
+  button.ghost { background:transparent; box-shadow:none; }
+  button.danger-text { color:var(--danger); }
+  button:disabled { opacity:0.4; cursor:not-allowed; }
+  input, select, textarea { background:var(--panel-2); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:10px; font-size:14px; font-family:inherit; width:100%; }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--accent); }
+  textarea { resize:vertical; min-height:80px; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  label { font-size:12px; color:var(--muted); display:block; margin-bottom:4px; }
+  .week-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:8px; }
+  .week-title { font-size:15px; font-weight:700; text-align:center; flex:1; }
+  .day { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:8px; display:grid; grid-template-columns:90px 1fr auto; gap:14px; align-items:center; box-shadow:var(--shadow-sm); }
+  .day.today { border-color:var(--accent); border-width:2px; }
+  .day .dname { font-weight:800; font-size:15px; letter-spacing:0.2px; }
+  .day .ddate { color:var(--muted); font-size:12px; margin-top:3px; font-weight:500; }
+  .day .dtime { font-size:17px; color:var(--accent-2); font-weight:800; letter-spacing:0.4px; }
+  .day .dtime.off { color:var(--muted); font-style:italic; font-weight:600; font-size:15px; }
+  .day .dtime.empty { color:var(--muted); font-weight:500; font-size:14px; }
+  .day .dhours { font-size:13px; color:var(--muted); margin-top:4px; font-weight:600; }
+  .day .day-edit-btn { font-weight:600; }
+  .dnote { font-size:12px; color:var(--muted); margin-top:8px; padding:6px 10px; background:color-mix(in srgb,var(--accent) 10%,transparent); border-left:3px solid var(--accent); border-radius:3px; word-break:break-word; font-style:italic; }
+  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .stat { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center; box-shadow:var(--shadow-sm); }
+  .stat .lbl { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:0.5px; }
+  .stat .val { color:var(--accent); font-size:24px; font-weight:700; margin-top:4px; }
+  .week-row { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:10px 14px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; font-size:14px; box-shadow:var(--shadow-sm); }
+  .week-row:hover { border-color:var(--accent); }
+  .week-row .wr-range { color:var(--muted); font-size:12px; }
+  .week-row .wr-hours { color:var(--accent); font-weight:700; font-size:15px; }
+  .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.75); display:none; align-items:center; justify-content:center; z-index:100; padding:16px; backdrop-filter:blur(2px); }
+  [data-theme="light"] .modal-bg { background:rgba(20,25,35,0.5); }
+  .modal-bg.show { display:flex; }
+  .modal { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:20px; max-width:460px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:var(--shadow-lg); }
+  .modal h3 { margin:0 0 14px 0; font-size:16px; }
+  .modal .actions { display:flex; gap:8px; margin-top:16px; justify-content:flex-end; flex-wrap:wrap; }
+  .modal-section { margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
+  .modal-section:first-of-type { border-top:none; padding-top:0; margin-top:0; }
+  .section-label { font-size:11px; color:var(--accent); font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:8px; }
+  .checkbox-row { display:flex; align-items:center; gap:8px; margin:12px 0; }
+  .checkbox-row input { width:auto; }
+  .chip-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+  .chip { background:var(--panel-2); border:1px solid var(--border); color:var(--text); padding:5px 10px; border-radius:999px; font-size:12px; cursor:pointer; white-space:nowrap; }
+  .chip:hover { border-color:var(--accent); }
+  .error-text { color:var(--danger); font-size:12px; margin:6px 0; }
+  .splash { position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:200; flex-direction:column; gap:16px; }
+  .splash .text { color:var(--muted); font-size:13px; }
+  .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--panel); border:1px solid var(--accent); color:var(--text); padding:10px 16px; border-radius:8px; font-size:13px; z-index:150; box-shadow:var(--shadow-lg); transition:opacity 0.3s; opacity:0; pointer-events:none; max-width:90vw; }
+  .toast.show { opacity:1; }
+  .menu-work-card { background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:14px; }
+  .menu-work-card .row-line { font-size:12px; margin-bottom:4px; }
+  .menu-work-card .row-line:last-child { margin-bottom:0; }
+  .menu-work-card .icon { width:18px; display:inline-block; }
+  .menu-work-card strong { color:var(--text); }
 
-    function isOwner() {
-      return request.auth != null
-        && request.auth.token.email == "zshajalal@gmail.com";
-    }
-    function isSignedIn() {
-      return request.auth != null;
-    }
+  /* Messages */
+  .msg-list { display:flex; flex-direction:column; gap:10px; max-height:60vh; overflow-y:auto; }
+  .msg-item { background:var(--panel-2); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:8px; padding:12px; }
+  .msg-item.unread { background:color-mix(in srgb,var(--accent) 10%,var(--panel-2)); }
+  .msg-item .head { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-bottom:6px; }
+  .msg-item .from { font-weight:600; color:var(--accent); }
+  .msg-item .text { font-size:13px; line-height:1.5; color:var(--text); white-space:pre-wrap; word-break:break-word; }
+  .msg-empty { text-align:center; color:var(--muted); padding:20px; font-size:13px; }
 
-    match /users/{userId} {
-      allow read: if isOwner();
-      allow read: if isSignedIn() && request.auth.uid == userId;
-      allow create: if isSignedIn() && request.auth.uid == userId;
-      allow update: if isSignedIn() && request.auth.uid == userId;
-      allow update, delete: if isOwner();
-    }
+  /* Banner */
+  .msg-banner { background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 20%,var(--panel)),color-mix(in srgb,var(--accent-2) 15%,var(--panel))); border:1px solid var(--accent); border-radius:10px; padding:12px 14px; margin-bottom:14px; display:none; align-items:center; gap:10px; cursor:pointer; }
+  .msg-banner.show { display:flex; }
+  .msg-banner .icon { font-size:20px; }
+  .msg-banner .info { flex:1; font-size:13px; }
+  .msg-banner .info strong { color:var(--accent); }
+  .msg-banner .close-x { background:transparent; border:none; color:var(--muted); cursor:pointer; font-size:18px; padding:0 4px; }
 
-    match /feedback/{docId} {
-      allow create: if isSignedIn();
-      allow read, update, delete: if isOwner();
-    }
+  /* Feedback */
+  .fb-type-chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+  .fb-type-chip { padding:6px 12px; border:1px solid var(--border); border-radius:999px; font-size:12px; cursor:pointer; background:var(--panel-2); color:var(--text); font-family:inherit; }
+  .fb-type-chip.active { background:var(--accent); color:#fff; border-color:var(--accent); font-weight:600; }
+  [data-theme="light"] .fb-type-chip.active { color:#fff; }
+  @media (max-width: 600px) {
+    .day { grid-template-columns:1fr auto; }
+    .day .dinfo { grid-column:1/-1; }
+    .stats { grid-template-columns:1fr; }
+    h1 { font-size:17px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="splash" id="splash">
+  <svg width="80" height="60" viewBox="0 0 200 90">
+    <g stroke="#14b8a6" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <path d="M 8 14 H 60 L 8 78 H 60"/>
+      <line x1="95" y1="44" x2="95" y2="78"/>
+      <path d="M 122 78 V 14 L 184 78 V 14"/>
+    </g>
+    <circle cx="95" cy="22" r="8" fill="#fbbf24"/>
+  </svg>
+  <div class="text">Connecting to cloud...</div>
+</div>
+
+<div class="container" id="appContainer" style="display:none;">
+  <header>
+    <div class="brand">
+      <div class="logo">
+        <svg width="46" height="36" viewBox="0 0 200 90">
+          <g stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none" style="color:var(--accent);">
+            <path d="M 8 14 H 60 L 8 78 H 60"/>
+            <line x1="95" y1="44" x2="95" y2="78"/>
+            <path d="M 122 78 V 14 L 184 78 V 14"/>
+          </g>
+          <circle cx="95" cy="22" r="8" fill="var(--accent-2)"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>ZiN <span class="accent">W</span></h1>
+        <div class="slogan" id="t-slogan">Plan Your Work</div>
+        <div class="work-info-line" id="workInfoLine"></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="user-pill" id="userPill" onclick="openMenuModal()">
+        <span>👤</span>
+        <strong id="userName">—</strong>
+        <span id="ownerBadge" style="display:none;" class="owner-badge">OWNER</span>
+        <span class="pill-badge" id="msgBadge">0</span>
+      </div>
+      <button class="icon-btn" onclick="openSettings()" title="Settings">⚙️</button>
+      <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="Theme">🌙</button>
+    </div>
+  </header>
+
+  <div class="owner-bar" id="ownerBar" style="display:none;">
+    <span class="label">👑 OWNER</span>
+    <span style="font-size:13px;" id="t-viewing">Viewing:</span>
+    <select id="userSwitcher" onchange="switchViewingUser()" style="flex:1; min-width:160px;">
+      <option value="">Loading users...</option>
+    </select>
+    <button onclick="openSendMessageModal()" style="white-space:nowrap;">✉️ <span id="t-sendmsg">Send Message</span></button>
+  </div>
+
+  <div class="msg-banner" id="msgBanner" onclick="openInboxModal()">
+    <span class="icon">📬</span>
+    <div class="info">
+      <strong id="msgBannerCount">0 new messages</strong>
+      <span id="t-tapread" style="color:var(--muted); font-size:11px; display:block; margin-top:2px;">Tap to read</span>
+    </div>
+    <button class="close-x" onclick="event.stopPropagation(); dismissBanner()">×</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="week" onclick="switchTab('week')">📅 <span id="t-week">Week</span></button>
+    <button class="tab" data-tab="month" onclick="switchTab('month')">📊 <span id="t-month">Month</span></button>
+  </div>
+
+  <div id="tab-week">
+    <div class="panel">
+      <div class="week-nav">
+        <button onclick="changeWeek(-1)">◀</button>
+        <div class="week-title" id="weekTitle">—</div>
+        <button onclick="changeWeek(1)">▶</button>
+      </div>
+      <div class="row" style="margin-bottom:12px;">
+        <button class="ghost" onclick="goToToday()" style="flex:1;" id="t-today">Today</button>
+        <input type="date" id="jumpDate" style="flex:2;" onchange="jumpToDate()" />
+      </div>
+      <div id="weekDays"></div>
+      <div style="margin-top:10px; text-align:right; font-size:13px; color:var(--muted);">
+        <span id="t-weektotal">Week total</span>: <strong style="color:var(--accent);"><span id="weekTotal">0</span>h</strong>
+        <span id="weekSalary" style="margin-left:8px;"></span>
+      </div>
+      <div style="margin-top:10px;">
+        <button onclick="exportWeeklyPDF()" style="width:100%;">📄 <span id="t-exportweek">Export Week as PDF</span></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-month" style="display:none;">
+    <div class="panel">
+      <div class="week-nav">
+        <button onclick="changeMonth(-1)">◀</button>
+        <div class="week-title" id="monthTitle">—</div>
+        <button onclick="changeMonth(1)">▶</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="lbl" id="t-shifts">Shifts</div><div class="val" id="mShifts">0</div></div>
+        <div class="stat"><div class="lbl" id="t-totalhours">Total Hours</div><div class="val" id="mHours">0</div></div>
+        <div class="stat"><div class="lbl" id="t-avg">Avg/shift</div><div class="val" id="mAvg">0</div></div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr; gap:8px; margin-top:8px;">
+        <div class="stat" style="border-color:var(--accent-2);">
+          <div class="lbl" id="t-sunday">Sunday Hours</div>
+          <div class="val" id="mSundayHours" style="color:var(--accent-2); font-size:20px;">0h</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;">
+        <button onclick="exportMonthlyPDF()" style="width:100%;">📄 <span id="t-exportmonth">Export Month as PDF</span></button>
+      </div>
+    </div>
+
+    <div id="mSalaryBox" style="display:none;" class="panel">
+      <h2>💰 <span id="t-salary">Estimated Salary</span></h2>
+      <div class="stat" style="border-color:var(--accent); background:color-mix(in srgb,var(--accent) 8%,var(--panel-2));">
+        <div class="lbl" id="t-thismonth">This month (gross)</div>
+        <div class="val" id="mSalary" style="color:var(--accent); font-size:26px;">—</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 id="t-weeklybreak">Weekly breakdown</h2>
+      <div id="monthWeeks"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="authModal">
+  <div class="modal">
+    <div style="text-align:center; margin-bottom:10px;">
+      <svg width="60" height="40" viewBox="0 0 200 90">
+        <g stroke="#14b8a6" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none">
+          <path d="M 8 14 H 60 L 8 78 H 60"/>
+          <line x1="95" y1="44" x2="95" y2="78"/>
+          <path d="M 122 78 V 14 L 184 78 V 14"/>
+        </g>
+        <circle cx="95" cy="22" r="8" fill="#fbbf24"/>
+      </svg>
+    </div>
+    <h3 id="authTitle" style="text-align:center;">Sign in to ZiN W</h3>
+    <div id="authNameRow" style="display:none;">
+      <label id="t-yourname">Your name</label>
+      <input type="text" id="authName" placeholder="e.g. Mohammed Shajalal" />
+    </div>
+    <label style="margin-top:10px;" id="t-email">Email</label>
+    <input type="email" id="authEmail" placeholder="you@example.com" autocomplete="email" />
+    <label style="margin-top:10px;" id="t-password">Password</label>
+    <input type="password" id="authPassword" placeholder="At least 6 characters" autocomplete="current-password" />
+    <div class="error-text" id="authError" style="display:none;"></div>
+    <button class="primary" onclick="doAuth()" id="authSubmitBtn" style="width:100%; margin-top:14px;">Sign In</button>
+    <div style="text-align:center; margin-top:12px; font-size:13px;">
+      <a href="#" onclick="toggleAuthMode(); return false;" id="authToggleLink" style="color:var(--accent); text-decoration:none;">Don't have an account? Sign up</a>
+    </div>
+    <div style="text-align:center; margin-top:8px; font-size:12px;">
+      <a href="#" onclick="forgotPassword(); return false;" style="color:var(--muted); text-decoration:none;">Forgot password?</a>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="editModal">
+  <div class="modal">
+    <h3 id="editTitle">Edit shift</h3>
+    <div class="checkbox-row">
+      <input type="checkbox" id="editOff" onchange="toggleOff()" />
+      <label for="editOff" style="margin:0;" id="t-dayoff">Day off</label>
+    </div>
+    <div id="editTimes">
+      <div class="section-label" id="t-presets">⏰ Quick presets</div>
+      <div class="chip-row">
+        <button type="button" class="chip" onclick="applyPreset('09:00','17:00')">🌅 9–5</button>
+        <button type="button" class="chip" onclick="applyPreset('06:00','14:00')">🌄 <span id="t-morning">Morning</span></button>
+        <button type="button" class="chip" onclick="applyPreset('14:00','22:00')">☀️ <span id="t-afternoon">Afternoon</span></button>
+        <button type="button" class="chip" onclick="applyPreset('22:00','06:00')">🌙 <span id="t-night">Night</span></button>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div><label id="t-start">Start time</label><input type="time" id="editStart" /></div>
+        <div><label id="t-end">End time</label><input type="time" id="editEnd" /></div>
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="section-label" id="t-notes">📝 Details / Notes</div>
+      <textarea id="editNote" rows="3" placeholder="Optional notes..."></textarea>
+    </div>
+    <div class="actions">
+      <button onclick="clearDay()" class="danger-text" id="t-clear">Clear</button>
+      <button onclick="closeEdit()" id="t-cancel">Cancel</button>
+      <button class="primary" onclick="saveEdit()" id="t-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <h3>⚙️ <span id="t-settings">Settings</span></h3>
+
+    <div class="modal-section">
+      <div class="section-label" id="t-appearance">🎨 Appearance</div>
+      <label id="t-theme">Theme</label>
+      <select id="setTheme">
+        <option value="dark" id="t-dark">🌙 Dark</option>
+        <option value="light" id="t-light">☀️ Light</option>
+      </select>
+      <label style="margin-top:8px;" id="t-language">Language</label>
+      <select id="setLang">
+        <option value="en">🇬🇧 English</option>
+        <option value="it">🇮🇹 Italiano</option>
+      </select>
+    </div>
+
+    <div class="modal-section">
+      <div class="section-label" id="t-workinfo">🏢 Work Info</div>
+      <label id="t-company">Company name</label>
+      <input type="text" id="setCompany" maxlength="60" />
+      <label style="margin-top:8px;" id="t-place">Place</label>
+      <input type="text" id="setCompanyPlace" maxlength="60" />
+      <label style="margin-top:8px;" id="t-position">Position / Level</label>
+      <input type="text" id="setPosition" maxlength="60" />
+    </div>
+
+    <div class="modal-section">
+      <div class="section-label" id="t-workpay">💰 Work & Pay</div>
+      <label id="t-rate">Hourly rate</label>
+      <input type="number" id="setRate" step="0.01" min="0" />
+      <label style="margin-top:8px;" id="t-currency">Currency symbol</label>
+      <input type="text" id="setCurrency" maxlength="4" />
+      <label style="margin-top:8px;" id="t-weektarget">Weekly target (hours)</label>
+      <input type="number" id="setTarget" step="0.5" min="0" />
+    </div>
+
+    <div class="modal-section">
+      <div class="section-label" id="t-alarm">⏰ Alarm / Reminder</div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="setAlarmEnabled" />
+        <label for="setAlarmEnabled" style="margin:0;" id="t-alarmenabled">Enable shift reminder</label>
+      </div>
+      <label id="t-remind">Remind me (minutes before shift)</label>
+      <input type="number" id="setAlarmBefore" min="1" max="120" step="5" />
+      <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+        <button type="button" onclick="testAlarm()" style="flex:1;">🔔 <span id="t-testalarm">Test alarm</span></button>
+        <button type="button" onclick="requestNotifPerm()" style="flex:1;">🔕 <span id="t-allownotif">Allow notifications</span></button>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="section-label">💾 <span id="t-data">Data</span></div>
+      <div class="row" style="flex-direction:column; align-items:stretch; gap:8px;">
+        <button onclick="downloadBackup()">⬇ <span id="t-download">Download backup</span></button>
+        <button onclick="emailBackup()">📧 <span id="t-emaildata">Email my data</span></button>
+        <button onclick="closeSettings(); openFeedbackModal();" class="ghost">💬 <span id="t-feedback">Send Feedback / Support</span></button>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button onclick="closeSettings()" id="t-cancel2">Cancel</button>
+      <button class="primary" onclick="saveSettings()" id="t-save2">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="menuModal">
+  <div class="modal">
+    <h3 id="t-menu">Menu</h3>
+    <div style="font-size:13px; color:var(--muted); margin-bottom:12px;">
+      <span id="t-loggedin">Logged in as</span> <strong style="color:var(--text);" id="menuUserEmail">—</strong>
+    </div>
+
+    <div class="menu-work-card" id="menuWorkCard" style="display:none;">
+      <div class="row-line" id="mwcCompany" style="display:none;"><span class="icon">🏢</span> <strong id="t-company2">Company:</strong> <span id="mwcCompanyVal"></span></div>
+      <div class="row-line" id="mwcPlace" style="display:none;"><span class="icon">📍</span> <strong id="t-place2">Place:</strong> <span id="mwcPlaceVal"></span></div>
+      <div class="row-line" id="mwcPosition" style="display:none;"><span class="icon">💼</span> <strong id="t-position2">Position:</strong> <span id="mwcPositionVal"></span></div>
+    </div>
+
+    <div class="row" style="flex-direction:column; align-items:stretch; gap:8px;">
+      <button onclick="openInboxModal()">📬 <span id="t-inbox">Inbox</span> <span class="pill-badge" id="menuMsgBadge" style="margin-left:6px;">0</span></button>
+      <button onclick="closeMenuModal(); openSettings();">⚙️ <span id="t-settings2">Settings</span></button>
+      <button onclick="closeMenuModal(); openFeedbackModal();">💬 <span id="t-feedback2">Feedback / Support</span></button>
+      <hr style="border-color:var(--border); margin:6px 0;"/>
+      <button onclick="signOutUser()">🚪 <span id="t-signout">Sign out</span></button>
+      <div id="ownerMenu" style="display:none;">
+        <hr style="border-color:var(--border); margin:6px 0;"/>
+        <div style="font-size:11px; color:var(--accent); text-transform:uppercase; margin-bottom:6px;" id="t-ownercontrols">Owner controls</div>
+        <button onclick="openFeedbackInbox()" style="width:100%; margin-bottom:6px;">📥 <span id="t-viewfeedback">View Feedback</span> <span class="pill-badge" id="fbBadge" style="margin-left:6px;">0</span></button>
+        <button onclick="deleteViewingUser()" class="danger-text" style="width:100%;" id="t-deleteuser">Delete viewing user</button>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="primary" onclick="closeMenuModal()" id="t-close">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="sendMessageModal">
+  <div class="modal">
+    <h3 id="t-sendmsg2">✉️ Send Message</h3>
+    <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">
+      <span id="t-to">To:</span> <strong id="sendMsgTo" style="color:var(--accent);">—</strong>
+    </div>
+    <label id="t-messagetext">Message</label>
+    <textarea id="sendMsgText" rows="5" placeholder="Type your message..."></textarea>
+    <div style="font-size:11px; color:var(--muted); margin-top:6px;" id="t-msghint">
+      💡 User will see this in their Inbox. You can also send via email.
+    </div>
+    <div class="actions" style="flex-direction:column; align-items:stretch;">
+      <button class="primary" onclick="sendMessage()" style="width:100%;">📨 <span id="t-send">Send in-app</span></button>
+      <button onclick="sendMessageEmail()" style="width:100%;">📧 <span id="t-sendemail">Send via email</span></button>
+      <button onclick="closeSendMessageModal()" class="ghost" style="width:100%;" id="t-cancel3">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="inboxModal">
+  <div class="modal">
+    <h3 id="t-inbox2">📬 Inbox</h3>
+    <div class="msg-list" id="msgList"></div>
+    <div class="actions">
+      <button onclick="markAllRead()" class="ghost" id="t-markread">Mark all read</button>
+      <button class="primary" onclick="closeInboxModal()" id="t-close2">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="feedbackModal">
+  <div class="modal">
+    <h3 id="t-feedback3">💬 Feedback / Support</h3>
+    <div style="font-size:12px; color:var(--muted); margin-bottom:10px;" id="t-fbhint">
+      Send a message to the owner. Report bugs, request features, or ask questions.
+    </div>
+    <label id="t-type">Type</label>
+    <div class="fb-type-chips" id="fbTypes">
+      <button type="button" class="fb-type-chip active" data-fb="bug">🐛 <span id="t-bug">Bug</span></button>
+      <button type="button" class="fb-type-chip" data-fb="feature">✨ <span id="t-feature">Feature</span></button>
+      <button type="button" class="fb-type-chip" data-fb="question">❓ <span id="t-question">Question</span></button>
+      <button type="button" class="fb-type-chip" data-fb="other">💭 <span id="t-other">Other</span></button>
+    </div>
+    <label style="margin-top:8px;" id="t-message">Message</label>
+    <textarea id="fbText" rows="5" placeholder="Describe your issue or idea..."></textarea>
+    <div class="error-text" id="fbError" style="display:none;"></div>
+    <div class="actions">
+      <button onclick="closeFeedbackModal()" id="t-cancel4">Cancel</button>
+      <button class="primary" onclick="submitFeedback()" id="t-send2">Send</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="feedbackInboxModal">
+  <div class="modal">
+    <h3 id="t-viewfeedback2">📥 User Feedback</h3>
+    <div class="msg-list" id="fbList"></div>
+    <div class="actions">
+      <button class="primary" onclick="closeFeedbackInbox()" id="t-close3">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  signOut, onAuthStateChanged, sendPasswordResetEmail, updateProfile
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
+  collection, getDocs, onSnapshot, serverTimestamp, addDoc, query, orderBy
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBHQKiqcwanrR4-5uo8NiDFAs5WnwZ18aA",
+  authDomain: "zin-working.firebaseapp.com",
+  projectId: "zin-working",
+  storageBucket: "zin-working.firebasestorage.app",
+  messagingSenderId: "988419444088",
+  appId: "1:988419444088:web:5098c942a905f284534c8d"
+};
+const OWNER_EMAIL = "zshajalal@gmail.com";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+window.fbAuth = auth;
+window.fbDb = db;
+window.fbFns = {
+  createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  signOut, sendPasswordResetEmail, updateProfile,
+  doc, getDoc, setDoc, updateDoc, deleteDoc,
+  collection, getDocs, onSnapshot, serverTimestamp, addDoc, query, orderBy,
+  OWNER_EMAIL
+};
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    window.currentAuthUser = user;
+    window.isOwner = (user.email === OWNER_EMAIL);
+    if(window.onUserSignedIn) await window.onUserSignedIn();
+  } else {
+    window.currentAuthUser = null;
+    window.isOwner = false;
+    if(window.onUserSignedOut) window.onUserSignedOut();
+  }
+});
+</script>
+
+<script>
+"use strict";
+const K_THEME = "zw_theme_v10";
+const K_LANG = "zw_lang_v1";
+
+const DAY_FULL = {
+  en: ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+  it: ["Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato","Domenica"]
+};
+const DAY_SHORT = {
+  en: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
+  it: ["Lun","Mar","Mer","Gio","Ven","Sab","Dom"]
+};
+
+const T = {
+  en: {
+    slogan:"Plan Your Work", viewing:"Viewing:", sendmsg:"Send Message",
+    tapread:"Tap to read", week:"Week", month:"Month", today:"Today",
+    weektotal:"Week total", exportweek:"Export Week as PDF",
+    shifts:"Shifts", totalhours:"Total Hours", avg:"Avg/shift",
+    sunday:"Sunday Hours", exportmonth:"Export Month as PDF",
+    salary:"Estimated Salary", thismonth:"This month (gross)",
+    weeklybreak:"Weekly breakdown", notes:"📝 Details / Notes",
+    start:"Start time", end:"End time", presets:"⏰ Quick presets",
+    morning:"Morning", afternoon:"Afternoon", night:"Night", dayoff:"Day off",
+    clear:"Clear", cancel:"Cancel", save:"Save", close:"Close",
+    settings:"Settings", appearance:"🎨 Appearance", theme:"Theme",
+    dark:"🌙 Dark", light:"☀️ Light", language:"Language",
+    workinfo:"🏢 Work Info (optional)", company:"Company name", place:"Place",
+    position:"Position / Level", workpay:"💰 Work & Pay", rate:"Hourly rate",
+    currency:"Currency symbol", weektarget:"Weekly target (hours)",
+    alarm:"⏰ Alarm / Reminder", alarmenabled:"Enable shift reminder",
+    remind:"Remind me (minutes before shift)", testalarm:"Test alarm",
+    allownotif:"Allow notifications", data:"Data", download:"Download backup",
+    emaildata:"Email my data", feedback:"Send Feedback / Support",
+    menu:"Menu", loggedin:"Logged in as", inbox:"Inbox", signout:"Sign out",
+    ownercontrols:"Owner controls", viewfeedback:"View Feedback",
+    deleteuser:"Delete viewing user", to:"To:", messagetext:"Message",
+    msghint:"💡 User will see this in their Inbox. You can also send via email.",
+    send:"Send in-app", sendemail:"Send via email", markread:"Mark all read",
+    fbhint:"Send a message to the owner. Report bugs, request features, or ask questions.",
+    type:"Type", bug:"Bug", feature:"Feature", question:"Question",
+    other:"Other", message:"Message",
+    company2:"Company:", place2:"Place:", position2:"Position:",
+    yourname:"Your name", email:"Email", password:"Password"
+  },
+  it: {
+    slogan:"Pianifica il tuo lavoro", viewing:"Visualizzando:", sendmsg:"Invia Messaggio",
+    tapread:"Tocca per leggere", week:"Settimana", month:"Mese", today:"Oggi",
+    weektotal:"Totale settimana", exportweek:"Esporta settimana in PDF",
+    shifts:"Turni", totalhours:"Ore totali", avg:"Media/turno",
+    sunday:"Ore domenicali", exportmonth:"Esporta mese in PDF",
+    salary:"Stipendio stimato", thismonth:"Questo mese (lordo)",
+    weeklybreak:"Riepilogo settimanale", notes:"📝 Dettagli / Note",
+    start:"Ora inizio", end:"Ora fine", presets:"⏰ Preset rapidi",
+    morning:"Mattina", afternoon:"Pomeriggio", night:"Notte", dayoff:"Giorno libero",
+    clear:"Cancella", cancel:"Annulla", save:"Salva", close:"Chiudi",
+    settings:"Impostazioni", appearance:"🎨 Aspetto", theme:"Tema",
+    dark:"🌙 Scuro", light:"☀️ Chiaro", language:"Lingua",
+    workinfo:"🏢 Info Lavoro (opzionale)", company:"Nome azienda", place:"Luogo",
+    position:"Posizione / Livello", workpay:"💰 Lavoro & Paga", rate:"Tariffa oraria",
+    currency:"Simbolo valuta", weektarget:"Obiettivo settimanale (ore)",
+    alarm:"⏰ Sveglia / Promemoria", alarmenabled:"Attiva promemoria turno",
+    remind:"Ricordami (minuti prima del turno)", testalarm:"Testa sveglia",
+    allownotif:"Consenti notifiche", data:"Dati", download:"Scarica backup",
+    emaildata:"Invia i miei dati", feedback:"Invia Feedback / Supporto",
+    menu:"Menu", loggedin:"Connesso come", inbox:"Posta", signout:"Esci",
+    ownercontrols:"Controlli proprietario", viewfeedback:"Vedi Feedback",
+    deleteuser:"Elimina utente visualizzato", to:"A:", messagetext:"Messaggio",
+    msghint:"💡 L'utente vedrà questo nella sua Posta. Puoi anche inviarlo via email.",
+    send:"Invia in-app", sendemail:"Invia via email", markread:"Segna tutti come letti",
+    fbhint:"Invia un messaggio al proprietario. Segnala bug, richiedi funzionalità o fai domande.",
+    type:"Tipo", bug:"Bug", feature:"Funzionalità", question:"Domanda",
+    other:"Altro", message:"Messaggio",
+    company2:"Azienda:", place2:"Luogo:", position2:"Posizione:",
+    yourname:"Il tuo nome", email:"Email", password:"Password"
+  }
+};
+
+let currentLang = localStorage.getItem(K_LANG) || "en";
+function t(key){ return (T[currentLang] && T[currentLang][key]) || (T.en[key]) || key; }
+
+function applyTranslations(){
+  document.querySelectorAll('[id^="t-"]').forEach(el => {
+    const key = el.id.substring(2);
+    if(T[currentLang][key]) el.textContent = T[currentLang][key];
+  });
+  const emailPh = document.getElementById("authEmail");
+  if(emailPh) emailPh.placeholder = "you@example.com";
+}
+
+let currentWeekStart = null;
+let currentMonth = null;
+let editIndex = -1;
+let viewingUid = null;
+let viewingData = null;
+let allUsers = [];
+let unsubscribeListener = null;
+let authMode = "signin";
+let alarmCheckInterval = null;
+let firedAlarms = {};
+let feedbackType = "bug";
+let unsubFeedback = null;
+let feedbackCount = 0;
+
+const pad = n => String(n).padStart(2,"0");
+const fmtDate = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const fmtDisp = d => `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
+const parseDate = s => { const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); };
+const addDays = (d,n) => { const x=new Date(d); x.setDate(x.getDate()+n); return x; };
+function getMonday(d){ const x=new Date(d); const day=x.getDay(); x.setDate(x.getDate()+(day===0?-6:1-day)); x.setHours(0,0,0,0); return x; }
+function hoursBetween(s,e){ if(!s||!e) return 0; const [sh,sm]=s.split(":").map(Number); const [eh,em]=e.split(":").map(Number); let m=(eh*60+em)-(sh*60+sm); if(m<0) m+=1440; return m/60; }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+
+function showToast(msg, ms=2500){
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(el._timer);
+  el._timer = setTimeout(()=>el.classList.remove("show"), ms);
+}
+
+function applyTheme(th){
+  document.documentElement.setAttribute("data-theme", th);
+  document.getElementById("themeBtn").textContent = th==="light" ? "☀️" : "🌙";
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.content = th === "light" ? "#f0f3f7" : "#010409";
+  localStorage.setItem(K_THEME, th);
+}
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute("data-theme") || "dark";
+  applyTheme(cur==="dark" ? "light" : "dark");
+}
+window.toggleTheme = toggleTheme;
+
+function defaultSettings(){
+  return { currency:"€", hourlyRate:0, targetWeekly:0, alarmEnabled:false, alarmBefore:30, company:"", companyPlace:"", position:"", language:"en" };
+}
+
+window.onUserSignedIn = async function(){
+  const user = window.currentAuthUser;
+  const fns = window.fbFns;
+  document.getElementById("splash").style.display = "none";
+  document.getElementById("appContainer").style.display = "block";
+  document.getElementById("authModal").classList.remove("show");
+
+  const userRef = fns.doc(window.fbDb, "users", user.uid);
+  const snap = await fns.getDoc(userRef);
+  if(!snap.exists()){
+    await fns.setDoc(userRef, {
+      name: user.displayName || (user.email.split("@")[0]),
+      email: user.email,
+      createdAt: fns.serverTimestamp(),
+      shifts: {},
+      messages: [],
+      settings: defaultSettings()
+    });
+  }
+
+  if(window.isOwner){
+    document.getElementById("ownerBadge").style.display = "inline-block";
+    document.getElementById("userPill").classList.add("owner");
+    document.getElementById("ownerBar").style.display = "flex";
+    await loadAllUsers();
+    startFeedbackListener();
+  } else {
+    document.getElementById("ownerBadge").style.display = "none";
+    document.getElementById("userPill").classList.remove("owner");
+    document.getElementById("ownerBar").style.display = "none";
+  }
+
+  await switchViewingTo(user.uid);
+  startAlarmChecker();
+};
+
+window.onUserSignedOut = function(){
+  if(unsubscribeListener){ unsubscribeListener(); unsubscribeListener = null; }
+  if(alarmCheckInterval){ clearInterval(alarmCheckInterval); alarmCheckInterval = null; }
+  if(unsubFeedback){ unsubFeedback(); unsubFeedback = null; }
+  viewingUid = null;
+  viewingData = null;
+  document.getElementById("splash").style.display = "none";
+  document.getElementById("appContainer").style.display = "none";
+  document.getElementById("authModal").classList.add("show");
+};
+
+async function loadAllUsers(){
+  const fns = window.fbFns;
+  try {
+    const snap = await fns.getDocs(fns.collection(window.fbDb, "users"));
+    allUsers = [];
+    snap.forEach(d => { allUsers.push({ uid: d.id, ...d.data() }); });
+    populateUserSwitcher();
+  } catch(e){
+    console.error("Failed to load users:", e);
+    showToast("Could not load users list");
   }
 }
+
+function populateUserSwitcher(){
+  const sel = document.getElementById("userSwitcher");
+  sel.innerHTML = "";
+  allUsers.forEach(u => {
+    const opt = document.createElement("option");
+    opt.value = u.uid;
+    const isOwnerProfile = u.email === window.fbFns.OWNER_EMAIL;
+    opt.textContent = `${u.name || u.email}${isOwnerProfile ? " (Owner — You)" : ""}`;
+    if(u.uid === viewingUid) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+async function switchViewingTo(uid){
+  const fns = window.fbFns;
+  if(unsubscribeListener){ unsubscribeListener(); }
+  viewingUid = uid;
+  const userRef = fns.doc(window.fbDb, "users", uid);
+  unsubscribeListener = fns.onSnapshot(userRef, (snap) => {
+    if(snap.exists()){
+      viewingData = snap.data();
+      refreshUserPill();
+      updateWorkInfoDisplay();
+      updateMessageBadge();
+      if(currentWeekStart) renderWeek();
+      if(document.getElementById("tab-month").style.display === "block") renderMonth();
+    }
+  }, (err) => {
+    console.error("Listen error:", err);
+    showToast("Sync error: " + err.message);
+  });
+}
+
+window.switchViewingUser = function(){
+  const uid = document.getElementById("userSwitcher").value;
+  if(uid && uid !== viewingUid){ switchViewingTo(uid); }
+};
+
+function refreshUserPill(){
+  if(!viewingData) return;
+  const name = viewingData.name || viewingData.email || "User";
+  document.getElementById("userName").textContent = name;
+  document.getElementById("menuUserEmail").textContent =
+    window.currentAuthUser ? window.currentAuthUser.email : "";
+}
+
+function updateWorkInfoDisplay(){
+  const s = (viewingData && viewingData.settings) || {};
+  const company = (s.company || "").trim();
+  const place = (s.companyPlace || "").trim();
+  const position = (s.position || "").trim();
+
+  const el = document.getElementById("workInfoLine");
+  const parts = [];
+  if(position) parts.push(escapeHtml(position));
+  if(company) parts.push(escapeHtml(company));
+  let line = parts.join(' <span class="sep">·</span> ');
+  if(place) line += (line ? '<span class="sep">·</span>' : '') + escapeHtml(place);
+  if(line){ el.innerHTML = line; el.style.display = "block"; }
+  else { el.style.display = "none"; }
+
+  const card = document.getElementById("menuWorkCard");
+  let any = false;
+  if(company){ document.getElementById("mwcCompany").style.display = "block"; document.getElementById("mwcCompanyVal").textContent = company; any = true; }
+  else document.getElementById("mwcCompany").style.display = "none";
+  if(place){ document.getElementById("mwcPlace").style.display = "block"; document.getElementById("mwcPlaceVal").textContent = place; any = true; }
+  else document.getElementById("mwcPlace").style.display = "none";
+  if(position){ document.getElementById("mwcPosition").style.display = "block"; document.getElementById("mwcPositionVal").textContent = position; any = true; }
+  else document.getElementById("mwcPosition").style.display = "none";
+  card.style.display = any ? "block" : "none";
+}
+
+function updateMessageBadge(){
+  const msgs = (viewingData && viewingData.messages) || [];
+  const unread = msgs.filter(m => !m.read).length;
+  const badge = document.getElementById("msgBadge");
+  const menuBadge = document.getElementById("menuMsgBadge");
+  if(unread > 0){
+    badge.textContent = unread; badge.classList.add("show");
+    menuBadge.textContent = unread; menuBadge.classList.add("show");
+    document.getElementById("msgBanner").classList.add("show");
+    document.getElementById("msgBannerCount").textContent = `${unread} new message${unread>1?"s":""}`;
+  } else {
+    badge.classList.remove("show");
+    menuBadge.classList.remove("show");
+    document.getElementById("msgBanner").classList.remove("show");
+  }
+}
+
+window.dismissBanner = function(){
+  document.getElementById("msgBanner").classList.remove("show");
+};
+
+window.toggleAuthMode = function(){
+  authMode = authMode === "signin" ? "signup" : "signin";
+  document.getElementById("authNameRow").style.display = authMode === "signup" ? "block" : "none";
+  document.getElementById("authTitle").textContent = authMode === "signup" ? "Create your account" : "Sign in to ZiN W";
+  document.getElementById("authSubmitBtn").textContent = authMode === "signup" ? "Sign Up" : "Sign In";
+  document.getElementById("authToggleLink").textContent = authMode === "signup" ? "Already have an account? Sign in" : "Don't have an account? Sign up";
+  document.getElementById("authError").style.display = "none";
+};
+
+window.doAuth = async function(){
+  const fns = window.fbFns;
+  const email = document.getElementById("authEmail").value.trim();
+  const password = document.getElementById("authPassword").value;
+  const name = document.getElementById("authName").value.trim();
+  const errEl = document.getElementById("authError");
+  errEl.style.display = "none";
+
+  if(!email || !password){ errEl.textContent = "Email and password are required."; errEl.style.display = "block"; return; }
+  if(authMode === "signup" && !name){ errEl.textContent = "Please enter your name."; errEl.style.display = "block"; return; }
+
+  const submitBtn = document.getElementById("authSubmitBtn");
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Please wait...";
+
+  try {
+    if(authMode === "signup"){
+      const cred = await fns.createUserWithEmailAndPassword(window.fbAuth, email, password);
+      await fns.updateProfile(cred.user, { displayName: name });
+      await fns.setDoc(fns.doc(window.fbDb, "users", cred.user.uid), {
+        name: name, email: email,
+        createdAt: fns.serverTimestamp(),
+        shifts: {}, messages: [], settings: defaultSettings()
+      });
+    } else {
+      await fns.signInWithEmailAndPassword(window.fbAuth, email, password);
+    }
+  } catch(e){
+    let msg = e.message || "Authentication failed";
+    if(e.code === "auth/email-already-in-use") msg = "Email already registered. Try signing in.";
+    if(e.code === "auth/invalid-email") msg = "Invalid email address.";
+    if(e.code === "auth/weak-password") msg = "Password must be at least 6 characters.";
+    if(e.code === "auth/wrong-password" || e.code === "auth/invalid-credential") msg = "Wrong email or password.";
+    if(e.code === "auth/user-not-found") msg = "No account with this email. Sign up first.";
+    errEl.textContent = msg;
+    errEl.style.display = "block";
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = authMode === "signup" ? "Sign Up" : "Sign In";
+  }
+};
+
+window.forgotPassword = async function(){
+  const fns = window.fbFns;
+  const email = document.getElementById("authEmail").value.trim();
+  if(!email){ document.getElementById("authError").textContent = "Enter your email first."; document.getElementById("authError").style.display = "block"; return; }
+  try { await fns.sendPasswordResetEmail(window.fbAuth, email); showToast("Password reset email sent to " + email); }
+  catch(e){ document.getElementById("authError").textContent = e.message; document.getElementById("authError").style.display = "block"; }
+};
+
+window.signOutUser = async function(){ await window.fbFns.signOut(window.fbAuth); closeMenuModal(); };
+
+function getWeek(weekStart){
+  if(!viewingData) return Array.from({length:7}, () => emptyDay());
+  const key = fmtDate(weekStart);
+  return (viewingData.shifts && viewingData.shifts[key]) || Array.from({length:7}, () => emptyDay());
+}
+function emptyDay(){ return {off:false, start:"", end:"", note:""}; }
+
+async function setWeek(weekStart, arr){
+  const fns = window.fbFns;
+  if(!viewingUid) return;
+  const key = fmtDate(weekStart);
+  if(!viewingData) viewingData = { shifts: {} };
+  if(!viewingData.shifts) viewingData.shifts = {};
+  viewingData.shifts[key] = arr;
+  try {
+    await fns.updateDoc(fns.doc(window.fbDb, "users", viewingUid), { [`shifts.${key}`]: arr });
+  } catch(e){ console.error("Save failed:", e); showToast("Save failed: " + e.message); }
+}
+
+window.switchTab = function(name){
+  ["week","month"].forEach(tab => {
+    document.getElementById("tab-"+tab).style.display = (tab===name)?"block":"none";
+  });
+  document.querySelectorAll(".tab").forEach(b => {
+    b.classList.toggle("active", b.dataset.tab===name);
+  });
+  if(name==="month") renderMonth();
+};
+
+function renderWeek(){
+  const arr = getWeek(currentWeekStart);
+  const wEnd = addDays(currentWeekStart, 6);
+  document.getElementById("weekTitle").textContent = `${fmtDisp(currentWeekStart)} — ${fmtDisp(wEnd)}`;
+  document.getElementById("jumpDate").value = fmtDate(currentWeekStart);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const container = document.getElementById("weekDays");
+  container.innerHTML = "";
+  let total = 0;
+  arr.forEach((s,i) => {
+    const d = addDays(currentWeekStart, i);
+    const isToday = d.getTime()===today.getTime();
+    const hrs = (s.off||!s.start||!s.end) ? 0 : hoursBetween(s.start,s.end);
+    total += hrs;
+    let timeEl;
+    if(s.off) timeEl = `<div class="dtime off">OFF</div>`;
+    else if(s.start && s.end) timeEl = `<div class="dtime">${s.start} – ${s.end}</div><div class="dhours">${hrs}h</div>`;
+    else timeEl = `<div class="dtime empty">— not set —</div>`;
+    const noteHtml = (s.note && s.note.trim())
+      ? `<div class="dnote">📝 ${escapeHtml(s.note.length > 80 ? s.note.slice(0,80)+"…" : s.note)}</div>` : "";
+    const card = document.createElement("div");
+    card.className = "day" + (isToday?" today":"");
+    card.innerHTML = `<div><div class="dname">${DAY_FULL[currentLang][i]}</div><div class="ddate">${fmtDisp(d)}</div></div><div class="dinfo">${timeEl}${noteHtml}</div><button class="day-edit-btn" onclick="openEdit(${i})">Edit</button>`;
+    container.appendChild(card);
+  });
+  document.getElementById("weekTotal").textContent = total.toFixed(1);
+  updateWeekSalary(total);
+}
+
+function updateWeekSalary(totalHours){
+  const el = document.getElementById("weekSalary");
+  const s = (viewingData && viewingData.settings) || {};
+  if(!s.hourlyRate || !el){ if(el) el.textContent = ""; return; }
+  const sym = s.currency || "€";
+  el.textContent = `· ${sym}${(totalHours * s.hourlyRate).toFixed(2)}`;
+  el.style.color = "var(--accent-2)";
+  el.style.fontWeight = "700";
+}
+
+window.changeWeek = function(dir){ currentWeekStart = addDays(currentWeekStart, 7*dir); renderWeek(); };
+window.goToToday = function(){ currentWeekStart = getMonday(new Date()); renderWeek(); };
+window.jumpToDate = function(){
+  const v = document.getElementById("jumpDate").value;
+  if(!v) return;
+  currentWeekStart = getMonday(parseDate(v));
+  renderWeek();
+};
+
+window.openEdit = function(i){
+  editIndex = i;
+  const arr = getWeek(currentWeekStart);
+  const s = arr[i];
+  const d = addDays(currentWeekStart, i);
+  document.getElementById("editTitle").textContent = `${DAY_FULL[currentLang][i]} — ${fmtDisp(d)}`;
+  document.getElementById("editOff").checked = !!s.off;
+  document.getElementById("editStart").value = s.start || "";
+  document.getElementById("editEnd").value = s.end || "";
+  document.getElementById("editNote").value = s.note || "";
+  toggleOff();
+  document.getElementById("editModal").classList.add("show");
+};
+window.toggleOff = function(){
+  document.getElementById("editTimes").style.display = document.getElementById("editOff").checked ? "none" : "block";
+};
+window.closeEdit = function(){ document.getElementById("editModal").classList.remove("show"); };
+
+window.applyPreset = function(start, end){
+  document.getElementById("editStart").value = start;
+  document.getElementById("editEnd").value = end;
+};
+
+window.saveEdit = async function(){
+  const off = document.getElementById("editOff").checked;
+  const start = document.getElementById("editStart").value;
+  const end = document.getElementById("editEnd").value;
+  const note = document.getElementById("editNote").value.trim();
+  if(!off && (!start || !end)){ alert("Enter both times, or mark as day off."); return; }
+  const arr = getWeek(currentWeekStart);
+  arr[editIndex] = off ? {off:true,start:"",end:"",note} : {off:false,start,end,note};
+  closeEdit();
+  await setWeek(currentWeekStart, arr);
+  renderWeek();
+  showToast("Saved ✓");
+};
+window.clearDay = async function(){
+  const arr = getWeek(currentWeekStart);
+  arr[editIndex] = emptyDay();
+  closeEdit();
+  await setWeek(currentWeekStart, arr);
+  renderWeek();
+};
+
+function renderMonth(){
+  if(!currentMonth){
+    const r = currentWeekStart || new Date();
+    currentMonth = new Date(r.getFullYear(), r.getMonth(), 1);
+  }
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+  document.getElementById("monthTitle").textContent = currentMonth.toLocaleString(currentLang==="it"?"it-IT":"en-US",{month:"long",year:"numeric"});
+  const all = (viewingData && viewingData.shifts) || {};
+  let totalShifts = 0, totalHours = 0, sundayHours = 0;
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month+1, 0);
+  const firstMonday = getMonday(firstDay);
+  const mondays = [];
+  let m = new Date(firstMonday);
+  while(m <= lastDay){ mondays.push(new Date(m)); m = addDays(m,7); }
+  const wc = document.getElementById("monthWeeks");
+  wc.innerHTML = "";
+  mondays.forEach(mon => {
+    const key = fmtDate(mon);
+    const arr = all[key];
+    let wH = 0, wS = 0;
+    if(arr){
+      for(let i=0;i<7;i++){
+        const d = addDays(mon,i);
+        if(d.getMonth()===month && d.getFullYear()===year){
+          const s = arr[i];
+          if(s && !s.off && s.start && s.end){
+            const h = hoursBetween(s.start,s.end);
+            wS++; wH += h;
+            if(i === 6) sundayHours += h;
+          }
+        }
+      }
+    }
+    totalShifts += wS; totalHours += wH;
+    const wEnd = addDays(mon,6);
+    const row = document.createElement("div");
+    row.className = "week-row";
+    row.onclick = () => { currentWeekStart = new Date(mon); window.switchTab("week"); renderWeek(); };
+    row.innerHTML = `<div><div>${fmtDisp(mon)}</div><div class="wr-range">${wS} ${wS===1?"shift":"shifts"} · ${fmtDisp(mon)} – ${fmtDisp(wEnd)}</div></div><div class="wr-hours">${wH.toFixed(1)}h</div>`;
+    wc.appendChild(row);
+  });
+  document.getElementById("mShifts").textContent = totalShifts;
+  document.getElementById("mHours").textContent = totalHours.toFixed(1);
+  document.getElementById("mAvg").textContent = totalShifts ? (totalHours/totalShifts).toFixed(1) : "0";
+  document.getElementById("mSundayHours").textContent = sundayHours.toFixed(1) + "h";
+
+  const s = (viewingData && viewingData.settings) || {};
+  const box = document.getElementById("mSalaryBox");
+  if(s.hourlyRate && box){
+    box.style.display = "block";
+    const sym = s.currency || "€";
+    document.getElementById("mSalary").textContent = `${sym}${(totalHours * s.hourlyRate).toFixed(2)}`;
+  } else if(box){ box.style.display = "none"; }
+}
+window.changeMonth = function(dir){ currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth()+dir, 1); renderMonth(); };
+
+window.openSettings = function(){
+  const s = (viewingData && viewingData.settings) || {};
+  document.getElementById("setTheme").value = document.documentElement.getAttribute("data-theme") || "dark";
+  document.getElementById("setLang").value = currentLang;
+  document.getElementById("setCompany").value = s.company || "";
+  document.getElementById("setCompanyPlace").value = s.companyPlace || "";
+  document.getElementById("setPosition").value = s.position || "";
+  document.getElementById("setRate").value = s.hourlyRate || "";
+  document.getElementById("setCurrency").value = s.currency || "€";
+  document.getElementById("setTarget").value = s.targetWeekly || "";
+  document.getElementById("setAlarmEnabled").checked = !!s.alarmEnabled;
+  document.getElementById("setAlarmBefore").value = s.alarmBefore || 30;
+  document.getElementById("settingsModal").classList.add("show");
+};
+window.closeSettings = function(){ document.getElementById("settingsModal").classList.remove("show"); };
+
+window.saveSettings = async function(){
+  const fns = window.fbFns;
+  if(!viewingUid) return;
+  const theme = document.getElementById("setTheme").value;
+  const lang = document.getElementById("setLang").value;
+  const newSettings = {
+    currency: document.getElementById("setCurrency").value.trim() || "€",
+    hourlyRate: parseFloat(document.getElementById("setRate").value) || 0,
+    targetWeekly: parseFloat(document.getElementById("setTarget").value) || 0,
+    alarmEnabled: document.getElementById("setAlarmEnabled").checked,
+    alarmBefore: parseInt(document.getElementById("setAlarmBefore").value) || 30,
+    company: document.getElementById("setCompany").value.trim(),
+    companyPlace: document.getElementById("setCompanyPlace").value.trim(),
+    position: document.getElementById("setPosition").value.trim(),
+    language: lang
+  };
+  applyTheme(theme);
+  currentLang = lang;
+  localStorage.setItem(K_LANG, lang);
+  applyTranslations();
+  if(!viewingData) viewingData = {};
+  viewingData.settings = newSettings;
+  try {
+    await fns.updateDoc(fns.doc(window.fbDb, "users", viewingUid), { settings: newSettings });
+    showToast("✓");
+    closeSettings();
+    updateWorkInfoDisplay();
+    renderWeek();
+    if(document.getElementById("tab-month").style.display === "block") renderMonth();
+  } catch(e){ showToast("Save failed: " + e.message); }
+};
+
+window.openSendMessageModal = function(){
+  if(!viewingData){ showToast("No user selected"); return; }
+  document.getElementById("sendMsgTo").textContent = viewingData.name || viewingData.email || "User";
+  document.getElementById("sendMsgText").value = "";
+  document.getElementById("sendMessageModal").classList.add("show");
+};
+window.closeSendMessageModal = function(){ document.getElementById("sendMessageModal").classList.remove("show"); };
+
+window.sendMessage = async function(){
+  const fns = window.fbFns;
+  const text = document.getElementById("sendMsgText").value.trim();
+  if(!text){ alert("Please write a message"); return; }
+  if(!viewingUid) return;
+  const owner = window.currentAuthUser;
+  const newMsg = {
+    from: owner.uid,
+    fromEmail: owner.email,
+    fromName: owner.displayName || "Owner",
+    text: text,
+    timestamp: new Date().toISOString(),
+    read: false
+  };
+  const existing = (viewingData && viewingData.messages) || [];
+  const updated = [...existing, newMsg];
+  try {
+    await fns.updateDoc(fns.doc(window.fbDb, "users", viewingUid), { messages: updated });
+    closeSendMessageModal();
+    showToast("✓ Message sent");
+  } catch(e){
+    showToast("Send failed: " + e.message);
+  }
+};
+
+window.sendMessageEmail = function(){
+  const text = document.getElementById("sendMsgText").value.trim();
+  if(!text){ alert("Please write a message"); return; }
+  const toEmail = viewingData && viewingData.email;
+  if(!toEmail){ alert("User has no email"); return; }
+  const subject = encodeURIComponent("ZiN W — Message from Owner");
+  const body = encodeURIComponent(text);
+  window.location.href = `mailto:${toEmail}?subject=${subject}&body=${body}`;
+  closeSendMessageModal();
+};
+
+window.openInboxModal = function(){
+  closeMenuModal();
+  renderInbox();
+  document.getElementById("inboxModal").classList.add("show");
+  dismissBanner();
+};
+window.closeInboxModal = function(){ document.getElementById("inboxModal").classList.remove("show"); };
+
+function renderInbox(){
+  const msgs = ((viewingData && viewingData.messages) || []).slice().sort((a,b) => (b.timestamp||"").localeCompare(a.timestamp||""));
+  const list = document.getElementById("msgList");
+  if(msgs.length === 0){
+    list.innerHTML = `<div class="msg-empty">📭 No messages yet</div>`;
+    return;
+  }
+  list.innerHTML = msgs.map((m) => {
+    const date = m.timestamp ? new Date(m.timestamp).toLocaleString() : "";
+    return `<div class="msg-item ${m.read?"":"unread"}">
+      <div class="head"><span class="from">👑 ${escapeHtml(m.fromName||"Owner")}</span><span>${escapeHtml(date)}</span></div>
+      <div class="text">${escapeHtml(m.text)}</div>
+    </div>`;
+  }).join("");
+}
+
+window.markAllRead = async function(){
+  const fns = window.fbFns;
+  if(!viewingUid) return;
+  const msgs = (viewingData && viewingData.messages) || [];
+  const updated = msgs.map(m => ({ ...m, read: true }));
+  try {
+    await fns.updateDoc(fns.doc(window.fbDb, "users", viewingUid), { messages: updated });
+    renderInbox();
+    updateMessageBadge();
+    showToast("All marked as read");
+  } catch(e){ showToast("Failed: " + e.message); }
+};
+
+window.openFeedbackModal = function(){
+  closeMenuModal();
+  closeSettings();
+  document.getElementById("fbText").value = "";
+  document.getElementById("fbError").style.display = "none";
+  feedbackType = "bug";
+  document.querySelectorAll(".fb-type-chip").forEach(c => c.classList.toggle("active", c.dataset.fb === "bug"));
+  document.getElementById("feedbackModal").classList.add("show");
+};
+window.closeFeedbackModal = function(){ document.getElementById("feedbackModal").classList.remove("show"); };
+
+document.addEventListener("click", (e) => {
+  if(e.target.classList.contains("fb-type-chip") || (e.target.parentElement && e.target.parentElement.classList.contains("fb-type-chip"))){
+    const chip = e.target.classList.contains("fb-type-chip") ? e.target : e.target.parentElement;
+    feedbackType = chip.dataset.fb;
+    document.querySelectorAll(".fb-type-chip").forEach(c => c.classList.toggle("active", c.dataset.fb === feedbackType));
+  }
+});
+
+window.submitFeedback = async function(){
+  const fns = window.fbFns;
+  const text = document.getElementById("fbText").value.trim();
+  const errEl = document.getElementById("fbError");
+  errEl.style.display = "none";
+  if(!text){ errEl.textContent = "Please write a message."; errEl.style.display = "block"; return; }
+  try {
+    await fns.addDoc(fns.collection(window.fbDb, "feedback"), {
+      from: window.currentAuthUser.uid,
+      fromEmail: window.currentAuthUser.email,
+      fromName: (viewingData && viewingData.name) || window.currentAuthUser.email,
+      type: feedbackType,
+      text: text,
+      timestamp: fns.serverTimestamp(),
+      read: false
+    });
+    closeFeedbackModal();
+    showToast("✓ Feedback sent to owner");
+  } catch(e){
+    errEl.textContent = "Send failed: " + e.message;
+    errEl.style.display = "block";
+  }
+};
+
+function startFeedbackListener(){
+  const fns = window.fbFns;
+  if(unsubFeedback) unsubFeedback();
+  try {
+    const q = fns.query(fns.collection(window.fbDb, "feedback"), fns.orderBy("timestamp", "desc"));
+    unsubFeedback = fns.onSnapshot(q, (snap) => {
+      feedbackCount = snap.size;
+      const badge = document.getElementById("fbBadge");
+      if(badge){ badge.textContent = feedbackCount; badge.classList.toggle("show", feedbackCount > 0); }
+    }, (err) => {
+      console.warn("Feedback listener error:", err.message);
+    });
+  } catch(e){
+    console.warn("Feedback listener setup failed:", e);
+  }
+}
+
+window.openFeedbackInbox = async function(){
+  closeMenuModal();
+  const fns = window.fbFns;
+  const list = document.getElementById("fbList");
+  list.innerHTML = `<div class="msg-empty">Loading...</div>`;
+  document.getElementById("feedbackInboxModal").classList.add("show");
+  try {
+    const q = fns.query(fns.collection(window.fbDb, "feedback"), fns.orderBy("timestamp", "desc"));
+    const snap = await fns.getDocs(q);
+    if(snap.empty){
+      list.innerHTML = `<div class="msg-empty">📭 No feedback yet</div>`;
+      return;
+    }
+    const typeIcon = {bug:"🐛", feature:"✨", question:"❓", other:"💭"};
+    let html = "";
+    snap.forEach(d => {
+      const f = d.data();
+      const date = f.timestamp && f.timestamp.toDate ? f.timestamp.toDate().toLocaleString() : "";
+      html += `<div class="msg-item ${f.read?"":"unread"}">
+        <div class="head"><span class="from">${typeIcon[f.type]||"💭"} ${escapeHtml(f.fromName||f.fromEmail||"User")}</span><span>${escapeHtml(date)}</span></div>
+        <div class="text">${escapeHtml(f.text)}</div>
+      </div>`;
+    });
+    list.innerHTML = html;
+  } catch(e){
+    list.innerHTML = `<div class="msg-empty">Error: ${escapeHtml(e.message)}</div>`;
+  }
+};
+window.closeFeedbackInbox = function(){ document.getElementById("feedbackInboxModal").classList.remove("show"); };
+
+function startAlarmChecker(){
+  if(alarmCheckInterval) clearInterval(alarmCheckInterval);
+  alarmCheckInterval = setInterval(checkAlarms, 30000);
+  checkAlarms();
+}
+
+function checkAlarms(){
+  const s = (viewingData && viewingData.settings) || {};
+  if(!s.alarmEnabled) return;
+  const now = new Date();
+  const todayKey = fmtDate(now);
+  const shifts = (viewingData && viewingData.shifts) || {};
+  const weekKey = fmtDate(getMonday(now));
+  const week = shifts[weekKey] || [];
+  const dayIdx = (now.getDay() + 6) % 7;
+  const today = week[dayIdx];
+  if(!today || today.off || !today.start) return;
+  const [sh, sm] = today.start.split(":").map(Number);
+  const shiftStart = new Date(now);
+  shiftStart.setHours(sh, sm, 0, 0);
+  const minutesBefore = s.alarmBefore || 30;
+  const alarmTime = new Date(shiftStart.getTime() - minutesBefore*60000);
+  const diffMs = alarmTime - now;
+  if(diffMs <= 60000 && diffMs > -60000){
+    const key = todayKey + "_" + today.start;
+    if(firedAlarms[key]) return;
+    firedAlarms[key] = true;
+    playAlarm();
+    showNotif("⏰ Shift starts soon", `Shift at ${today.start} (in ${minutesBefore} min)`);
+  }
+}
+
+function playAlarm(){
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if(!Ctx) return;
+    const ctx = new Ctx();
+    [880, 1100].forEach((freq, i) => {
+      const o = ctx.createOscillator(); const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = "sine"; o.frequency.value = freq;
+      const t0 = ctx.currentTime + i*0.5;
+      g.gain.setValueAtTime(0.3, t0);
+      g.gain.exponentialRampToValueAtTime(0.001, t0 + 1.2);
+      o.start(t0); o.stop(t0 + 1.3);
+    });
+  } catch(e){}
+  showToast("⏰ Alarm!", 5000);
+}
+
+function showNotif(title, body){
+  if(!("Notification" in window)) return;
+  if(Notification.permission === "granted"){
+    try { new Notification(title, { body, icon: "icon-192.png" }); } catch(e){}
+  }
+}
+
+window.requestNotifPerm = async function(){
+  if(!("Notification" in window)){ showToast("Not supported"); return; }
+  const p = await Notification.requestPermission();
+  showToast(p === "granted" ? "✓ Enabled" : "✗ Denied");
+};
+
+window.testAlarm = function(){ playAlarm(); showNotif("⏰ Test", "Test notification"); };
+
+window.openMenuModal = function(){
+  document.getElementById("ownerMenu").style.display = window.isOwner ? "block" : "none";
+  updateWorkInfoDisplay();
+  updateMessageBadge();
+  document.getElementById("menuModal").classList.add("show");
+};
+window.closeMenuModal = function(){ document.getElementById("menuModal").classList.remove("show"); };
+
+function buildBackupData(){
+  return JSON.stringify({
+    profile: viewingData && viewingData.name,
+    email: viewingData && viewingData.email,
+    shifts: (viewingData && viewingData.shifts) || {},
+    settings: (viewingData && viewingData.settings) || {},
+    exportedAt: new Date().toISOString()
+  }, null, 2);
+}
+
+window.downloadBackup = function(){
+  const data = buildBackupData();
+  const blob = new Blob([data], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `zin-w-${fmtDate(new Date())}.json`; a.click();
+  URL.revokeObjectURL(url);
+  closeMenuModal(); closeSettings();
+};
+
+window.emailBackup = function(){
+  const data = buildBackupData();
+  const subject = encodeURIComponent("ZiN W — Backup " + fmtDate(new Date()));
+  const body = encodeURIComponent("Backup:\n\n" + data);
+  const mailto = `mailto:?subject=${subject}&body=${body}`;
+  if(mailto.length > 7000){ if(confirm("Backup is large. Download instead?")) downloadBackup(); return; }
+  window.location.href = mailto;
+  closeMenuModal(); closeSettings();
+};
+
+window.deleteViewingUser = async function(){
+  const fns = window.fbFns;
+  if(!window.isOwner) return;
+  if(viewingUid === window.currentAuthUser.uid){ alert("You can't delete yourself."); return; }
+  if(!confirm("Delete this profile and all its data?")) return;
+  try {
+    await fns.deleteDoc(fns.doc(window.fbDb, "users", viewingUid));
+    showToast("Profile deleted");
+    closeMenuModal();
+    await loadAllUsers();
+    await switchViewingTo(window.currentAuthUser.uid);
+  } catch(e){ showToast("Delete failed: " + e.message); }
+};
+
+document.addEventListener("keydown", (e) => {
+  if(e.key === "Escape"){ document.querySelectorAll(".modal-bg.show").forEach(m => m.classList.remove("show")); }
+});
+
+window.exportWeeklyPDF = function(){
+  if(!currentWeekStart){ showToast("No week selected"); return; }
+  const arr = getWeek(currentWeekStart);
+  const wEnd = addDays(currentWeekStart, 6);
+  const s = (viewingData && viewingData.settings) || {};
+  const sym = s.currency || "€";
+  const rate = s.hourlyRate || 0;
+  const name = (viewingData && viewingData.name) || "User";
+  const infoLine = [s.position, s.company, s.companyPlace].filter(Boolean).join(" · ");
+
+  let totalHours = 0, sundayHours = 0, shiftCount = 0, rowsHtml = "";
+  arr.forEach((shift, i) => {
+    const d = addDays(currentWeekStart, i);
+    let timeStr = "—", hrs = 0;
+    if(shift.off) timeStr = "OFF";
+    else if(shift.start && shift.end){
+      timeStr = `${shift.start} – ${shift.end}`;
+      hrs = hoursBetween(shift.start, shift.end);
+      totalHours += hrs; shiftCount++;
+      if(i === 6) sundayHours += hrs;
+    }
+    const note = shift.note ? `<br><span style="color:#666;font-size:11px;font-style:italic;">📝 ${escapeHtml(shift.note)}</span>` : "";
+    rowsHtml += `<tr><td style="padding:10px;border-bottom:1px solid #e5e7eb;font-weight:700;">${DAY_FULL[currentLang][i]}</td><td style="padding:10px;border-bottom:1px solid #e5e7eb;">${fmtDisp(d)}</td><td style="padding:10px;border-bottom:1px solid #e5e7eb;color:${shift.off?'#888':'#0d9488'};font-weight:700;">${timeStr}${note}</td><td style="padding:10px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:600;">${hrs?hrs.toFixed(1)+"h":"—"}</td><td style="padding:10px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:600;">${hrs&&rate?sym+(hrs*rate).toFixed(2):"—"}</td></tr>`;
+  });
+  const salary = totalHours * rate;
+  const sundayExtra = sundayHours * rate * 0.1;
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Week ${fmtDisp(currentWeekStart)}</title><style>body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:30px;color:#1a1f26}h1{font-size:22px;margin:0;color:#0d9488}.sub{color:#666;font-size:12px;margin-top:4px}.info{background:#f0f3f7;padding:10px 14px;border-radius:8px;margin:14px 0;font-size:12px}table{width:100%;border-collapse:collapse;margin:20px 0;font-size:13px}th{background:#0d9488;color:#fff;padding:10px;text-align:left;font-size:11px;text-transform:uppercase}th:not(:first-child){text-align:right}td:not(:first-child):not(:nth-child(2)){text-align:right}.totals{background:#0d9488;color:#fff;padding:14px;border-radius:8px;font-size:14px}.footer{color:#888;font-size:10px;text-align:center;margin-top:30px}@media print{body{margin:12mm}button{display:none}}button{background:#0d9488;color:#fff;border:none;padding:10px 20px;border-radius:6px;font-size:14px;cursor:pointer}</style></head><body><h1>📅 ZiN W — Weekly Report</h1><div class="sub">${fmtDisp(currentWeekStart)} — ${fmtDisp(wEnd)}</div><div class="info"><strong>${escapeHtml(name)}</strong>${infoLine?`<br>${escapeHtml(infoLine)}`:""}</div><div style="margin:16px 0;"><button onclick="window.print()">🖨 Print / Save as PDF</button></div><table><thead><tr><th>Day</th><th>Date</th><th style="text-align:left">Shift</th><th style="text-align:right">Hours</th><th style="text-align:right">Pay</th></tr></thead><tbody>${rowsHtml}</tbody></table><div class="totals"><div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Shifts: <strong>${shiftCount}</strong></span><span>Hours: <strong>${totalHours.toFixed(1)}h</strong></span></div>${sundayHours>0?`<div style="font-size:12px;opacity:0.9;">Sunday: ${sundayHours.toFixed(1)}h (+10%)</div>`:""}${rate?`<div style="font-size:12px;opacity:0.9;margin-top:6px;">Rate: ${sym}${rate}/h</div>`:""}${rate?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.3);">Estimated gross: <strong>${sym}${(salary+sundayExtra).toFixed(2)}</strong></div>`:""}</div><div class="footer">ZiN W · ${new Date().toLocaleString()}</div></body></html>`;
+  openPrintWindow(html);
+};
+
+window.exportMonthlyPDF = function(){
+  if(!currentMonth){ showToast("No month selected"); return; }
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+  const s = (viewingData && viewingData.settings) || {};
+  const sym = s.currency || "€";
+  const rate = s.hourlyRate || 0;
+  const name = (viewingData && viewingData.name) || "User";
+  const infoLine = [s.position, s.company, s.companyPlace].filter(Boolean).join(" · ");
+  const all = (viewingData && viewingData.shifts) || {};
+  const monthLabel = currentMonth.toLocaleString(currentLang==="it"?"it-IT":"en-US",{month:"long",year:"numeric"});
+
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month+1, 0);
+  const days = [];
+  for(let d = new Date(firstDay); d <= lastDay; d = addDays(d, 1)){
+    const weekKey = fmtDate(getMonday(d));
+    const weekArr = all[weekKey] || [];
+    const dayIdx = (d.getDay() + 6) % 7;
+    days.push({ date: new Date(d), shift: weekArr[dayIdx] || emptyDay(), dayIdx });
+  }
+
+  let totalHours = 0, sundayHours = 0, shiftCount = 0, workDays = 0, rowsHtml = "";
+  days.forEach(({date, shift, dayIdx}) => {
+    let timeStr = "—", hrs = 0, isWork = false;
+    if(shift.off) timeStr = "OFF";
+    else if(shift.start && shift.end){
+      timeStr = `${shift.start} – ${shift.end}`;
+      hrs = hoursBetween(shift.start, shift.end);
+      totalHours += hrs; shiftCount++; workDays++; isWork = true;
+      if(dayIdx === 6) sundayHours += hrs;
+    }
+    const isWeekend = (dayIdx === 5 || dayIdx === 6);
+    const bg = isWeekend ? '#fafafa' : '';
+    const note = shift.note ? `<br><span style="color:#666;font-size:10px;font-style:italic;">📝 ${escapeHtml(shift.note)}</span>` : "";
+    rowsHtml += `<tr style="background:${bg};"><td style="padding:8px 10px;border-bottom:1px solid #eee;font-weight:700;font-size:12px;">${DAY_SHORT[currentLang][dayIdx]}</td><td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:12px;">${fmtDisp(date)}</td><td style="padding:8px 10px;border-bottom:1px solid #eee;color:${isWork?'#0d9488':'#888'};font-weight:700;font-size:12px;">${timeStr}${note}</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;font-size:12px;font-weight:600;">${hrs?hrs.toFixed(1)+"h":"—"}</td></tr>`;
+  });
+  const salary = totalHours * rate;
+  const sundayExtra = sundayHours * rate * 0.1;
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${monthLabel}</title><style>body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:25px;color:#1a1f26}h1{font-size:22px;margin:0;color:#0d9488}.sub{color:#666;font-size:12px;margin-top:4px}.info{background:#f0f3f7;padding:10px 14px;border-radius:8px;margin:14px 0;font-size:12px}table{width:100%;border-collapse:collapse;margin:16px 0;font-size:12px}th{background:#0d9488;color:#fff;padding:9px;text-align:left;font-size:10px;text-transform:uppercase}th:not(:first-child):not(:nth-child(2)):not(:nth-child(3)){text-align:right}td:not(:first-child):not(:nth-child(2)):not(:nth-child(3)){text-align:right}.summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:16px 0}.stat{background:#f0f3f7;padding:12px;border-radius:8px;text-align:center}.stat .l{font-size:10px;color:#666;text-transform:uppercase}.stat .v{font-size:18px;font-weight:700;color:#0d9488;margin-top:4px}.totals{background:#0d9488;color:#fff;padding:14px;border-radius:8px;font-size:14px}.footer{color:#888;font-size:10px;text-align:center;margin-top:24px}@media print{body{margin:12mm}button{display:none}}button{background:#0d9488;color:#fff;border:none;padding:10px 20px;border-radius:6px;font-size:14px;cursor:pointer}</style></head><body><h1>📊 ZiN W — Monthly Report</h1><div class="sub">${monthLabel}</div><div class="info"><strong>${escapeHtml(name)}</strong>${infoLine?`<br>${escapeHtml(infoLine)}`:""}</div><div style="margin:14px 0;"><button onclick="window.print()">🖨 Print / Save as PDF</button></div><div class="summary"><div class="stat"><div class="l">Work Days</div><div class="v">${workDays}</div></div><div class="stat"><div class="l">Total Hours</div><div class="v">${totalHours.toFixed(1)}h</div></div><div class="stat"><div class="l">Sunday Hours</div><div class="v">${sundayHours.toFixed(1)}h</div></div></div><table><thead><tr><th>Day</th><th>Date</th><th style="text-align:left">Shift</th><th style="text-align:right">Hours</th></tr></thead><tbody>${rowsHtml}</tbody></table><div class="totals"><div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Shifts: <strong>${shiftCount}</strong></span><span>Total: <strong>${totalHours.toFixed(1)}h</strong></span></div>${sundayHours>0?`<div style="font-size:12px;opacity:0.9;">Sunday: ${sundayHours.toFixed(1)}h (+10%)</div>`:""}${rate?`<div style="font-size:12px;opacity:0.9;margin-top:6px;">Rate: ${sym}${rate}/h</div>`:""}${rate?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.3);">Estimated gross: <strong>${sym}${(salary+sundayExtra).toFixed(2)}</strong></div>`:""}</div><div class="footer">ZiN W · ${new Date().toLocaleString()}</div></body></html>`;
+  openPrintWindow(html);
+};
+
+function openPrintWindow(html){
+  const win = window.open("", "_blank");
+  if(!win){ showToast("Popup blocked"); return; }
+  win.document.open(); win.document.write(html); win.document.close();
+}
+
+function init(){
+  applyTheme(localStorage.getItem(K_THEME) || "dark");
+  currentLang = localStorage.getItem(K_LANG) || "en";
+  applyTranslations();
+  currentWeekStart = getMonday(new Date());
+  currentMonth = new Date(currentWeekStart.getFullYear(), currentWeekStart.getMonth(), 1);
+  setTimeout(() => {
+    if(!window.currentAuthUser && document.getElementById("splash").style.display !== "none"){
+      document.getElementById("splash").style.display = "none";
+      document.getElementById("authModal").classList.add("show");
+    }
+  }, 6000);
+}
+document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>
