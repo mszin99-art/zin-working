@@ -81,8 +81,10 @@
   .checkbox-row{display:flex;align-items:center;gap:8px;margin:12px 0;}
   .checkbox-row input{width:auto;}
   .chip-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
-  .chip{background:var(--panel-2);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:999px;font-size:12px;cursor:pointer;white-space:nowrap;}
+  .chip{background:var(--panel-2);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:999px;font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit;}
   .chip:hover{border-color:var(--accent);}
+  .chip.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;}
+  [data-theme="light"] .chip.active{color:#fff;}
   .error-text{color:var(--danger);font-size:12px;margin:6px 0;}
   .splash{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:200;flex-direction:column;gap:16px;}
   .splash .text{color:var(--muted);font-size:13px;}
@@ -110,7 +112,39 @@
   .fb-type-chip{padding:6px 12px;border:1px solid var(--border);border-radius:999px;font-size:12px;cursor:pointer;background:var(--panel-2);color:var(--text);font-family:inherit;}
   .fb-type-chip.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;}
   [data-theme="light"] .fb-type-chip.active{color:#fff;}
-  @media (max-width:600px){.day{grid-template-columns:1fr auto;}.day .dinfo{grid-column:1/-1;}.stats{grid-template-columns:1fr;}h1{font-size:17px;}}
+
+  /* ============ OWNER DASHBOARD ============ */
+  .owner-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px;flex-wrap:wrap;}
+  .owner-header h2{margin:0;font-size:15px;font-weight:700;color:var(--text);text-transform:none;letter-spacing:0;}
+  .owner-header .count{background:var(--accent);color:var(--bg);padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;}
+  .user-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+  .user-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:10px;transition:border-color 0.2s,transform 0.15s;}
+  .user-card:hover{border-color:var(--accent);transform:translateY(-1px);}
+  .user-card.viewing{border-color:var(--accent);border-width:2px;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 15%,transparent);}
+  .user-card.is-me{border-left:4px solid var(--accent-2);}
+  .uc-head{display:flex;align-items:center;gap:10px;min-width:0;}
+  .uc-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:14px;flex-shrink:0;letter-spacing:0.5px;}
+  .uc-name{font-weight:700;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .uc-email{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
+  .uc-badges{display:flex;gap:4px;flex-wrap:wrap;min-height:0;}
+  .uc-badge{font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;}
+  .uc-badge.owner-b{background:var(--accent-2);color:var(--bg);}
+  .uc-badge.viewing-b{background:var(--accent);color:var(--bg);}
+  .uc-badge.unread-b{background:var(--danger);color:#fff;}
+  .uc-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+  .uc-stat{background:var(--panel-2);border-radius:6px;padding:8px 6px;text-align:center;}
+  .uc-stat .n{font-weight:800;color:var(--accent);font-size:16px;line-height:1;}
+  .uc-stat .l{color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:0.4px;margin-top:3px;}
+  .uc-actions{display:flex;gap:4px;margin-top:auto;}
+  .uc-actions button{flex:1;padding:7px 4px;font-size:11px;font-weight:600;border-radius:6px;}
+  .uc-actions button.icon-only{flex:0 0 auto;padding:7px 9px;}
+  @media (max-width:600px){
+    .day{grid-template-columns:1fr auto;}
+    .day .dinfo{grid-column:1/-1;}
+    .stats{grid-template-columns:1fr;}
+    h1{font-size:17px;}
+    .user-cards-grid{grid-template-columns:1fr;}
+  }
 </style>
 </head>
 <body>
@@ -179,6 +213,7 @@
   <div class="tabs">
     <button class="tab active" data-tab="week" onclick="switchTab('week')">📅 <span id="t-week">Week</span></button>
     <button class="tab" data-tab="month" onclick="switchTab('month')">📊 <span id="t-month">Month</span></button>
+    <button class="tab" data-tab="users" id="usersTabBtn" onclick="switchTab('users')" style="display:none;">👑 <span id="t-users">Users</span></button>
   </div>
 
   <div id="tab-week">
@@ -239,8 +274,27 @@
       <div id="monthWeeks"></div>
     </div>
   </div>
+
+  <!-- ============ OWNER DASHBOARD TAB ============ -->
+  <div id="tab-users" style="display:none;">
+    <div class="panel">
+      <div class="owner-header">
+        <h2>👑 <span id="t-ownerDashboard">Owner Dashboard</span></h2>
+        <span class="count" id="userCountBadge">0</span>
+      </div>
+      <input type="text" id="userSearchBox" placeholder="🔍 Search by name or email..." oninput="filterOwnerUsers()" style="margin-bottom:10px;">
+      <div class="chip-row" id="userFilterChips" style="margin-bottom:0;">
+        <button type="button" class="chip active" onclick="setUserFilter('all', this)" id="t-filterAll">All</button>
+        <button type="button" class="chip" onclick="setUserFilter('shifts', this)" id="t-filterShifts">Has shifts</button>
+        <button type="button" class="chip" onclick="setUserFilter('messages', this)" id="t-filterMsgs">Unread msgs</button>
+        <button type="button" class="chip" onclick="setUserFilter('recent', this)" id="t-filterRecent">Recent</button>
+      </div>
+    </div>
+    <div id="userCards" class="user-cards-grid"></div>
+  </div>
 </div>
 
+<!-- AUTH MODAL -->
 <div class="modal-bg" id="authModal">
   <div class="modal">
     <div style="text-align:center;margin-bottom:10px;">
@@ -273,6 +327,7 @@
   </div>
 </div>
 
+<!-- EDIT MODAL -->
 <div class="modal-bg" id="editModal">
   <div class="modal">
     <h3 id="editTitle">Edit shift</h3>
@@ -305,6 +360,7 @@
   </div>
 </div>
 
+<!-- SETTINGS MODAL -->
 <div class="modal-bg" id="settingsModal">
   <div class="modal">
     <h3>⚙️ <span id="t-settings">Settings</span></h3>
@@ -378,6 +434,7 @@
   </div>
 </div>
 
+<!-- MENU MODAL -->
 <div class="modal-bg" id="menuModal">
   <div class="modal">
     <h3 id="t-menu">Menu</h3>
@@ -400,8 +457,8 @@
       <div id="ownerMenu" style="display:none;">
         <hr style="border-color:var(--border);margin:6px 0;"/>
         <div style="font-size:11px;color:var(--accent);text-transform:uppercase;margin-bottom:6px;" id="t-ownercontrols">Owner controls</div>
+        <button onclick="closeMenuModal(); switchTab('users');" style="width:100%;margin-bottom:6px;">👑 <span id="t-openDashboard">Open Owner Dashboard</span></button>
         <button onclick="openFeedbackInbox()" style="width:100%;margin-bottom:6px;">📥 <span id="t-viewfeedback">View Feedback</span> <span class="pill-badge" id="fbBadge" style="margin-left:6px;">0</span></button>
-        <button onclick="openTransferModal()" style="width:100%;margin-bottom:6px;">📤 <span id="t-transfer">Copy data from a user</span></button>
         <button onclick="deleteViewingUser()" class="danger-text" style="width:100%;" id="t-deleteuser">Delete viewing user</button>
       </div>
     </div>
@@ -411,6 +468,7 @@
   </div>
 </div>
 
+<!-- SEND MESSAGE MODAL -->
 <div class="modal-bg" id="sendMessageModal">
   <div class="modal">
     <h3 id="t-sendmsg2">✉️ Send Message</h3>
@@ -428,6 +486,7 @@
   </div>
 </div>
 
+<!-- INBOX MODAL -->
 <div class="modal-bg" id="inboxModal">
   <div class="modal">
     <h3 id="t-inbox2">📬 Inbox</h3>
@@ -439,6 +498,7 @@
   </div>
 </div>
 
+<!-- FEEDBACK MODAL -->
 <div class="modal-bg" id="feedbackModal">
   <div class="modal">
     <h3 id="t-feedback3">💬 Feedback / Support</h3>
@@ -460,6 +520,7 @@
   </div>
 </div>
 
+<!-- FEEDBACK INBOX MODAL -->
 <div class="modal-bg" id="feedbackInboxModal">
   <div class="modal">
     <h3 id="t-viewfeedback2">📥 User Feedback</h3>
@@ -470,17 +531,14 @@
   </div>
 </div>
 
+<!-- TRANSFER DATA MODAL -->
 <div class="modal-bg" id="transferModal">
   <div class="modal">
     <h3 id="t-transfer2">📤 Copy data from a user</h3>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;" id="t-transferhint">
-      Copy another user's shifts and settings into <strong>your</strong> account. Use this when migrating from an old account to your new owner account.
-    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;" id="t-transferhint">Copy another user's shifts and settings into your account. Use this when migrating from an old account to your new owner account.</div>
     <label id="t-sourceuser">Source user</label>
     <select id="transferSource"></select>
-    <div style="font-size:11px;color:var(--warn);margin-top:10px;font-weight:600;">
-      ⚠ This will OVERWRITE your current shifts & settings. Make a backup first.
-    </div>
+    <div style="font-size:11px;color:var(--warn);margin-top:10px;font-weight:600;">⚠ This will OVERWRITE your current shifts & settings. Make a backup first.</div>
     <div class="actions">
       <button onclick="closeTransferModal()" id="t-cancel5">Cancel</button>
       <button class="primary" onclick="doTransferData()" id="t-copydata">Copy to my account</button>
@@ -540,18 +598,18 @@ onAuthStateChanged(auth, async (user) => {
 
 <script>
 "use strict";
-const K_THEME="zw_theme_v11";const K_LANG="zw_lang_v1";
+const K_THEME="zw_theme_v12";const K_LANG="zw_lang_v1";
 const DAY_FULL={en:["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],it:["Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato","Domenica"]};
 const DAY_SHORT={en:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],it:["Lun","Mar","Mer","Gio","Ven","Sab","Dom"]};
 const T={
-en:{slogan:"Plan Your Work",viewing:"Viewing:",sendmsg:"Send Message",tapread:"Tap to read",week:"Week",month:"Month",today:"Today",weektotal:"Week total",exportweek:"Export Week as PDF",shifts:"Shifts",totalhours:"Total Hours",avg:"Avg/shift",sunday:"Sunday Hours",exportmonth:"Export Month as PDF",salary:"Estimated Salary",thismonth:"This month (gross)",weeklybreak:"Weekly breakdown",notes:"📝 Details / Notes",start:"Start time",end:"End time",presets:"⏰ Quick presets",morning:"Morning",afternoon:"Afternoon",night:"Night",dayoff:"Day off",clear:"Clear",cancel:"Cancel",save:"Save",close:"Close",settings:"Settings",appearance:"🎨 Appearance",theme:"Theme",dark:"🌙 Dark",light:"☀️ Light",language:"Language",workinfo:"🏢 Work Info (optional)",company:"Company name",place:"Place",position:"Position / Level",workpay:"💰 Work & Pay",rate:"Hourly rate",currency:"Currency symbol",weektarget:"Weekly target (hours)",alarm:"⏰ Alarm / Reminder",alarmenabled:"Enable shift reminder",remind:"Remind me (minutes before shift)",testalarm:"Test alarm",allownotif:"Allow notifications",data:"Data",download:"Download backup",emaildata:"Email my data",feedback:"Send Feedback / Support",menu:"Menu",loggedin:"Logged in as",inbox:"Inbox",signout:"Sign out",signout2:"Sign out",account:"👤 Account",ownercontrols:"Owner controls",viewfeedback:"View Feedback",deleteuser:"Delete viewing user",to:"To:",messagetext:"Message",msghint:"💡 User will see this in their Inbox. You can also send via email.",send:"Send in-app",sendemail:"Send via email",markread:"Mark all read",fbhint:"Send a message to the owner. Report bugs, request features, or ask questions.",type:"Type",bug:"Bug",feature:"Feature",question:"Question",other:"Other",message:"Message",company2:"Company:",place2:"Place:",position2:"Position:",yourname:"Your name",email:"Email",password:"Password",transfer:"Copy data from a user",transfer2:"📤 Copy data from a user",transferhint:"Copy another user's shifts and settings into your account. Use this when migrating from an old account to your new owner account.",sourceuser:"Source user",copydata:"Copy to my account"},
-it:{slogan:"Pianifica il tuo lavoro",viewing:"Visualizzando:",sendmsg:"Invia Messaggio",tapread:"Tocca per leggere",week:"Settimana",month:"Mese",today:"Oggi",weektotal:"Totale settimana",exportweek:"Esporta settimana in PDF",shifts:"Turni",totalhours:"Ore totali",avg:"Media/turno",sunday:"Ore domenicali",exportmonth:"Esporta mese in PDF",salary:"Stipendio stimato",thismonth:"Questo mese (lordo)",weeklybreak:"Riepilogo settimanale",notes:"📝 Dettagli / Note",start:"Ora inizio",end:"Ora fine",presets:"⏰ Preset rapidi",morning:"Mattina",afternoon:"Pomeriggio",night:"Notte",dayoff:"Giorno libero",clear:"Cancella",cancel:"Annulla",save:"Salva",close:"Chiudi",settings:"Impostazioni",appearance:"🎨 Aspetto",theme:"Tema",dark:"🌙 Scuro",light:"☀️ Chiaro",language:"Lingua",workinfo:"🏢 Info Lavoro (opzionale)",company:"Nome azienda",place:"Luogo",position:"Posizione / Livello",workpay:"💰 Lavoro & Paga",rate:"Tariffa oraria",currency:"Simbolo valuta",weektarget:"Obiettivo settimanale (ore)",alarm:"⏰ Sveglia / Promemoria",alarmenabled:"Attiva promemoria turno",remind:"Ricordami (minuti prima del turno)",testalarm:"Testa sveglia",allownotif:"Consenti notifiche",data:"Dati",download:"Scarica backup",emaildata:"Invia i miei dati",feedback:"Invia Feedback / Supporto",menu:"Menu",loggedin:"Connesso come",inbox:"Posta",signout:"Esci",signout2:"Esci",account:"👤 Account",ownercontrols:"Controlli proprietario",viewfeedback:"Vedi Feedback",deleteuser:"Elimina utente visualizzato",to:"A:",messagetext:"Messaggio",msghint:"💡 L'utente vedrà questo nella sua Posta. Puoi anche inviarlo via email.",send:"Invia in-app",sendemail:"Invia via email",markread:"Segna tutti come letti",fbhint:"Invia un messaggio al proprietario. Segnala bug, richiedi funzionalità o fai domande.",type:"Tipo",bug:"Bug",feature:"Funzionalità",question:"Domanda",other:"Altro",message:"Messaggio",company2:"Azienda:",place2:"Luogo:",position2:"Posizione:",yourname:"Il tuo nome",email:"Email",password:"Password",transfer:"Copia dati da un utente",transfer2:"📤 Copia dati da un utente",transferhint:"Copia turni e impostazioni di un altro utente nel tuo account. Usalo per migrare da un vecchio account al nuovo account proprietario.",sourceuser:"Utente di origine",copydata:"Copia nel mio account"}
+en:{slogan:"Plan Your Work",viewing:"Viewing:",sendmsg:"Send Message",tapread:"Tap to read",week:"Week",month:"Month",users:"Users",today:"Today",weektotal:"Week total",exportweek:"Export Week as PDF",shifts:"Shifts",totalhours:"Total Hours",avg:"Avg/shift",sunday:"Sunday Hours",exportmonth:"Export Month as PDF",salary:"Estimated Salary",thismonth:"This month (gross)",weeklybreak:"Weekly breakdown",notes:"📝 Details / Notes",start:"Start time",end:"End time",presets:"⏰ Quick presets",morning:"Morning",afternoon:"Afternoon",night:"Night",dayoff:"Day off",clear:"Clear",cancel:"Cancel",save:"Save",close:"Close",settings:"Settings",appearance:"🎨 Appearance",theme:"Theme",dark:"🌙 Dark",light:"☀️ Light",language:"Language",workinfo:"🏢 Work Info (optional)",company:"Company name",place:"Place",position:"Position / Level",workpay:"💰 Work & Pay",rate:"Hourly rate",currency:"Currency symbol",weektarget:"Weekly target (hours)",alarm:"⏰ Alarm / Reminder",alarmenabled:"Enable shift reminder",remind:"Remind me (minutes before shift)",testalarm:"Test alarm",allownotif:"Allow notifications",data:"Data",download:"Download backup",emaildata:"Email my data",feedback:"Send Feedback / Support",menu:"Menu",loggedin:"Logged in as",inbox:"Inbox",signout:"Sign out",signout2:"Sign out",account:"👤 Account",ownercontrols:"Owner controls",openDashboard:"Open Owner Dashboard",viewfeedback:"View Feedback",deleteuser:"Delete viewing user",to:"To:",messagetext:"Message",msghint:"💡 User will see this in their Inbox. You can also send via email.",send:"Send in-app",sendemail:"Send via email",markread:"Mark all read",fbhint:"Send a message to the owner. Report bugs, request features, or ask questions.",type:"Type",bug:"Bug",feature:"Feature",question:"Question",other:"Other",message:"Message",company2:"Company:",place2:"Place:",position2:"Position:",yourname:"Your name",email:"Email",password:"Password",transfer2:"📤 Copy data from a user",transferhint:"Copy another user's shifts and settings into your account. Use this when migrating from an old account to your new owner account.",sourceuser:"Source user",copydata:"Copy to my account",ownerDashboard:"Owner Dashboard",filterAll:"All",filterShifts:"Has shifts",filterMsgs:"Unread msgs",filterRecent:"Recent"},
+it:{slogan:"Pianifica il tuo lavoro",viewing:"Visualizzando:",sendmsg:"Invia Messaggio",tapread:"Tocca per leggere",week:"Settimana",month:"Mese",users:"Utenti",today:"Oggi",weektotal:"Totale settimana",exportweek:"Esporta settimana in PDF",shifts:"Turni",totalhours:"Ore totali",avg:"Media/turno",sunday:"Ore domenicali",exportmonth:"Esporta mese in PDF",salary:"Stipendio stimato",thismonth:"Questo mese (lordo)",weeklybreak:"Riepilogo settimanale",notes:"📝 Dettagli / Note",start:"Ora inizio",end:"Ora fine",presets:"⏰ Preset rapidi",morning:"Mattina",afternoon:"Pomeriggio",night:"Notte",dayoff:"Giorno libero",clear:"Cancella",cancel:"Annulla",save:"Salva",close:"Chiudi",settings:"Impostazioni",appearance:"🎨 Aspetto",theme:"Tema",dark:"🌙 Scuro",light:"☀️ Chiaro",language:"Lingua",workinfo:"🏢 Info Lavoro (opzionale)",company:"Nome azienda",place:"Luogo",position:"Posizione / Livello",workpay:"💰 Lavoro & Paga",rate:"Tariffa oraria",currency:"Simbolo valuta",weektarget:"Obiettivo settimanale (ore)",alarm:"⏰ Sveglia / Promemoria",alarmenabled:"Attiva promemoria turno",remind:"Ricordami (minuti prima del turno)",testalarm:"Testa sveglia",allownotif:"Consenti notifiche",data:"Dati",download:"Scarica backup",emaildata:"Invia i miei dati",feedback:"Invia Feedback / Supporto",menu:"Menu",loggedin:"Connesso come",inbox:"Posta",signout:"Esci",signout2:"Esci",account:"👤 Account",ownercontrols:"Controlli proprietario",openDashboard:"Apri Dashboard Proprietario",viewfeedback:"Vedi Feedback",deleteuser:"Elimina utente visualizzato",to:"A:",messagetext:"Messaggio",msghint:"💡 L'utente vedrà questo nella sua Posta. Puoi anche inviarlo via email.",send:"Invia in-app",sendemail:"Invia via email",markread:"Segna tutti come letti",fbhint:"Invia un messaggio al proprietario. Segnala bug, richiedi funzionalità o fai domande.",type:"Tipo",bug:"Bug",feature:"Funzionalità",question:"Domanda",other:"Altro",message:"Messaggio",company2:"Azienda:",place2:"Luogo:",position2:"Posizione:",yourname:"Il tuo nome",email:"Email",password:"Password",transfer2:"📤 Copia dati da un utente",transferhint:"Copia turni e impostazioni di un altro utente nel tuo account. Usalo per migrare da un vecchio account al nuovo account proprietario.",sourceuser:"Utente di origine",copydata:"Copia nel mio account",ownerDashboard:"Dashboard Proprietario",filterAll:"Tutti",filterShifts:"Con turni",filterMsgs:"Msg non letti",filterRecent:"Recenti"}
 };
 let currentLang=localStorage.getItem(K_LANG)||"en";
 function t(k){return(T[currentLang]&&T[currentLang][k])||(T.en[k])||k;}
 function applyTranslations(){document.querySelectorAll('[id^="t-"]').forEach(el=>{const k=el.id.substring(2);if(T[currentLang][k])el.textContent=T[currentLang][k];});}
 
-let currentWeekStart=null,currentMonth=null,editIndex=-1,viewingUid=null,viewingData=null,allUsers=[],unsubscribeListener=null,authMode="signin",alarmCheckInterval=null,firedAlarms={},feedbackType="bug",unsubFeedback=null,feedbackCount=0,transferSourceUid=null;
+let currentWeekStart=null,currentMonth=null,editIndex=-1,viewingUid=null,viewingData=null,allUsers=[],unsubscribeListener=null,authMode="signin",alarmCheckInterval=null,firedAlarms={},feedbackType="bug",unsubFeedback=null,feedbackCount=0,userFilterMode="all";
 
 const pad=n=>String(n).padStart(2,"0");
 const fmtDate=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
@@ -581,12 +639,14 @@ window.onUserSignedIn=async function(){
     document.getElementById("ownerBadge").style.display="inline-block";
     document.getElementById("userPill").classList.add("owner");
     document.getElementById("ownerBar").style.display="flex";
+    document.getElementById("usersTabBtn").style.display="block";
     await loadAllUsers();
     startFeedbackListener();
   }else{
     document.getElementById("ownerBadge").style.display="none";
     document.getElementById("userPill").classList.remove("owner");
     document.getElementById("ownerBar").style.display="none";
+    document.getElementById("usersTabBtn").style.display="none";
   }
   await switchViewingTo(user.uid);
   startAlarmChecker();
@@ -602,10 +662,24 @@ window.onUserSignedOut=function(){
   document.getElementById("authModal").classList.add("show");
 };
 
-async function loadAllUsers(){const fns=window.fbFns;try{const snap=await fns.getDocs(fns.collection(window.fbDb,"users"));allUsers=[];snap.forEach(d=>{allUsers.push({uid:d.id,...d.data()});});populateUserSwitcher();}catch(e){console.error(e);showToast("Could not load users list");}}
+async function loadAllUsers(){const fns=window.fbFns;try{const snap=await fns.getDocs(fns.collection(window.fbDb,"users"));allUsers=[];snap.forEach(d=>{allUsers.push({uid:d.id,...d.data()});});populateUserSwitcher();renderOwnerDashboard();}catch(e){console.error(e);showToast("Could not load users list");}}
 function populateUserSwitcher(){const sel=document.getElementById("userSwitcher");sel.innerHTML="";allUsers.forEach(u=>{const opt=document.createElement("option");opt.value=u.uid;const isOwnerProfile=u.email===window.fbFns.OWNER_EMAIL;opt.textContent=`${u.name||u.email}${isOwnerProfile?" (Owner — You)":""}`;if(u.uid===viewingUid)opt.selected=true;sel.appendChild(opt);});}
 
-async function switchViewingTo(uid){const fns=window.fbFns;if(unsubscribeListener){unsubscribeListener();}viewingUid=uid;const userRef=fns.doc(window.fbDb,"users",uid);unsubscribeListener=fns.onSnapshot(userRef,(snap)=>{if(snap.exists()){viewingData=snap.data();refreshUserPill();updateWorkInfoDisplay();updateMessageBadge();if(currentWeekStart)renderWeek();if(document.getElementById("tab-month").style.display==="block")renderMonth();}},(err)=>{console.error("Listen error:",err);showToast("Sync error: "+err.message);});}
+async function switchViewingTo(uid){
+  const fns=window.fbFns;
+  if(unsubscribeListener){unsubscribeListener();}
+  viewingUid=uid;
+  const userRef=fns.doc(window.fbDb,"users",uid);
+  unsubscribeListener=fns.onSnapshot(userRef,(snap)=>{
+    if(snap.exists()){
+      viewingData=snap.data();
+      refreshUserPill();updateWorkInfoDisplay();updateMessageBadge();
+      if(currentWeekStart)renderWeek();
+      if(document.getElementById("tab-month").style.display==="block")renderMonth();
+      if(document.getElementById("tab-users").style.display==="block")renderOwnerDashboard();
+    }
+  },(err)=>{console.error("Listen error:",err);showToast("Sync error: "+err.message);});
+}
 window.switchViewingUser=function(){const uid=document.getElementById("userSwitcher").value;if(uid&&uid!==viewingUid){switchViewingTo(uid);}};
 function refreshUserPill(){if(!viewingData)return;const name=viewingData.name||viewingData.email||"User";document.getElementById("userName").textContent=name;document.getElementById("menuUserEmail").textContent=window.currentAuthUser?window.currentAuthUser.email:"";}
 
@@ -627,6 +701,76 @@ function updateWorkInfoDisplay(){
 function updateMessageBadge(){const msgs=(viewingData&&viewingData.messages)||[];const unread=msgs.filter(m=>!m.read).length;const badge=document.getElementById("msgBadge");const menuBadge=document.getElementById("menuMsgBadge");if(unread>0){badge.textContent=unread;badge.classList.add("show");menuBadge.textContent=unread;menuBadge.classList.add("show");document.getElementById("msgBanner").classList.add("show");document.getElementById("msgBannerCount").textContent=`${unread} new message${unread>1?"s":""}`;}else{badge.classList.remove("show");menuBadge.classList.remove("show");document.getElementById("msgBanner").classList.remove("show");}}
 window.dismissBanner=function(){document.getElementById("msgBanner").classList.remove("show");};
 
+// ============ OWNER DASHBOARD ============
+function calculateUserTotalHours(shifts){let total=0;for(const key in shifts){const arr=shifts[key];if(!Array.isArray(arr))continue;for(const s of arr){if(s&&!s.off&&s.start&&s.end){total+=hoursBetween(s.start,s.end);}}}return total;}
+
+function renderOwnerDashboard(){
+  if(!window.isOwner)return;
+  const grid=document.getElementById("userCards");
+  if(!grid)return;
+  const search=(document.getElementById("userSearchBox")?.value||"").toLowerCase().trim();
+  let users=allUsers.slice();
+  if(search){users=users.filter(u=>(u.name||"").toLowerCase().includes(search)||(u.email||"").toLowerCase().includes(search));}
+  if(userFilterMode==="shifts"){users=users.filter(u=>Object.keys(u.shifts||{}).length>0);}
+  else if(userFilterMode==="messages"){users=users.filter(u=>(u.messages||[]).some(m=>!m.read));}
+  else if(userFilterMode==="recent"){
+    users.sort((a,b)=>{const aT=a.createdAt&&a.createdAt.toDate?a.createdAt.toDate():new Date(0);const bT=b.createdAt&&b.createdAt.toDate?b.createdAt.toDate():new Date(0);return bT-aT;});
+  }
+  if(userFilterMode!=="recent"){users.sort((a,b)=>(a.name||a.email||"").localeCompare(b.name||b.email||""));}
+  const meIdx=users.findIndex(u=>u.uid===window.currentAuthUser.uid);
+  if(meIdx>0){const me=users.splice(meIdx,1)[0];users.unshift(me);}
+  document.getElementById("userCountBadge").textContent=users.length;
+  if(users.length===0){grid.innerHTML=`<div class="msg-empty" style="grid-column:1/-1;">📭 No users found</div>`;return;}
+  grid.innerHTML=users.map(u=>{
+    const weeksCount=Object.keys(u.shifts||{}).length;
+    const totalHours=calculateUserTotalHours(u.shifts||{});
+    const unread=(u.messages||[]).filter(m=>!m.read).length;
+    const isMe=u.uid===window.currentAuthUser.uid;
+    const isViewing=u.uid===viewingUid;
+    const initials=(u.name||u.email||"?").split(" ").map(w=>w[0]||"").slice(0,2).join("").toUpperCase();
+    return `<div class="user-card ${isViewing?"viewing":""} ${isMe?"is-me":""}">
+      <div class="uc-head">
+        <div class="uc-avatar">${escapeHtml(initials||"?")}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="uc-name">${escapeHtml(u.name||"Unnamed")}</div>
+          <div class="uc-email">${escapeHtml(u.email||"")}</div>
+        </div>
+      </div>
+      <div class="uc-badges">
+        ${isMe?'<span class="uc-badge owner-b">👑 Owner (You)</span>':''}
+        ${isViewing&&!isMe?'<span class="uc-badge viewing-b">👁 Viewing</span>':''}
+        ${unread>0?`<span class="uc-badge unread-b">📬 ${unread} new</span>`:''}
+      </div>
+      <div class="uc-stats">
+        <div class="uc-stat"><div class="n">${weeksCount}</div><div class="l">Weeks</div></div>
+        <div class="uc-stat"><div class="n">${totalHours.toFixed(0)}h</div><div class="l">Total</div></div>
+      </div>
+      <div class="uc-actions">
+        <button onclick="dashboardViewUser('${u.uid}')" title="View schedule">👁 View</button>
+        <button onclick="dashboardMessage('${u.uid}')" class="icon-only" title="Send message">✉️</button>
+        <button onclick="dashboardCopy('${u.uid}')" class="icon-only" title="Copy data to me">📤</button>
+        ${!isMe?`<button onclick="dashboardDelete('${u.uid}')" class="danger-text icon-only" title="Delete user">🗑</button>`:''}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+window.filterOwnerUsers=function(){renderOwnerDashboard();};
+window.setUserFilter=function(mode,btn){userFilterMode=mode;document.querySelectorAll("#userFilterChips .chip").forEach(c=>c.classList.remove("active"));btn.classList.add("active");renderOwnerDashboard();};
+
+window.dashboardViewUser=function(uid){switchViewingTo(uid);switchTab("week");showToast("👁 Viewing user schedule");};
+window.dashboardMessage=function(uid){switchViewingTo(uid);setTimeout(()=>openSendMessageModal(),350);};
+window.dashboardCopy=function(uid){closeMenuModal();openTransferModal();setTimeout(()=>{const sel=document.getElementById("transferSource");if(sel)sel.value=uid;},150);};
+window.dashboardDelete=async function(uid){
+  const u=allUsers.find(x=>x.uid===uid);
+  if(!u)return;
+  if(u.uid===window.currentAuthUser.uid){alert("You can't delete yourself.");return;}
+  if(!confirm(`Delete "${u.name||u.email}"?\n\nThis removes their profile and all shift data from the app. Their login account remains but they'll see an empty schedule.`))return;
+  const fns=window.fbFns;
+  try{await fns.deleteDoc(fns.doc(window.fbDb,"users",uid));showToast("✓ User deleted");await loadAllUsers();renderOwnerDashboard();}catch(e){showToast("Delete failed: "+e.message);}
+};
+
+// ============ AUTH ============
 window.toggleAuthMode=function(){authMode=authMode==="signin"?"signup":"signin";document.getElementById("authNameRow").style.display=authMode==="signup"?"block":"none";document.getElementById("authTitle").textContent=authMode==="signup"?"Create your account":"Sign in to ZiN W";document.getElementById("authSubmitBtn").textContent=authMode==="signup"?"Sign Up":"Sign In";document.getElementById("authToggleLink").textContent=authMode==="signup"?"Already have an account? Sign in":"Don't have an account? Sign up";document.getElementById("authError").style.display="none";};
 
 window.doAuth=async function(){
@@ -646,14 +790,14 @@ window.doAuth=async function(){
 };
 
 window.forgotPassword=async function(){const fns=window.fbFns;const email=document.getElementById("authEmail").value.trim();if(!email){document.getElementById("authError").textContent="Enter your email first.";document.getElementById("authError").style.display="block";return;}try{await fns.sendPasswordResetEmail(window.fbAuth,email);showToast("Password reset email sent to "+email);}catch(e){document.getElementById("authError").textContent=e.message;document.getElementById("authError").style.display="block";}};
-
 window.signOutUser=async function(){await window.fbFns.signOut(window.fbAuth);closeMenuModal();};
 
+// ============ WEEK ============
 function getWeek(weekStart){if(!viewingData)return Array.from({length:7},()=>emptyDay());const key=fmtDate(weekStart);return(viewingData.shifts&&viewingData.shifts[key])||Array.from({length:7},()=>emptyDay());}
 function emptyDay(){return{off:false,start:"",end:"",note:""};}
 async function setWeek(weekStart,arr){const fns=window.fbFns;if(!viewingUid)return;const key=fmtDate(weekStart);if(!viewingData)viewingData={shifts:{}};if(!viewingData.shifts)viewingData.shifts={};viewingData.shifts[key]=arr;try{await fns.updateDoc(fns.doc(window.fbDb,"users",viewingUid),{[`shifts.${key}`]:arr});}catch(e){console.error("Save failed:",e);showToast("Save failed: "+e.message);}}
 
-window.switchTab=function(name){["week","month"].forEach(tab=>{document.getElementById("tab-"+tab).style.display=(tab===name)?"block":"none";});document.querySelectorAll(".tab").forEach(b=>{b.classList.toggle("active",b.dataset.tab===name);});if(name==="month")renderMonth();};
+window.switchTab=function(name){["week","month","users"].forEach(tab=>{const el=document.getElementById("tab-"+tab);if(el)el.style.display=(tab===name)?"block":"none";});document.querySelectorAll(".tab").forEach(b=>{b.classList.toggle("active",b.dataset.tab===name);});if(name==="month")renderMonth();if(name==="users")renderOwnerDashboard();};
 
 function renderWeek(){
   const arr=getWeek(currentWeekStart);const wEnd=addDays(currentWeekStart,6);
@@ -681,7 +825,6 @@ function updateWeekSalary(totalHours){const el=document.getElementById("weekSala
 window.changeWeek=function(dir){currentWeekStart=addDays(currentWeekStart,7*dir);renderWeek();};
 window.goToToday=function(){currentWeekStart=getMonday(new Date());renderWeek();};
 window.jumpToDate=function(){const v=document.getElementById("jumpDate").value;if(!v)return;currentWeekStart=getMonday(parseDate(v));renderWeek();};
-
 window.openEdit=function(i){editIndex=i;const arr=getWeek(currentWeekStart);const s=arr[i];const d=addDays(currentWeekStart,i);document.getElementById("editTitle").textContent=`${DAY_FULL[currentLang][i]} — ${fmtDisp(d)}`;document.getElementById("editOff").checked=!!s.off;document.getElementById("editStart").value=s.start||"";document.getElementById("editEnd").value=s.end||"";document.getElementById("editNote").value=s.note||"";toggleOff();document.getElementById("editModal").classList.add("show");};
 window.toggleOff=function(){document.getElementById("editTimes").style.display=document.getElementById("editOff").checked?"none":"block";};
 window.closeEdit=function(){document.getElementById("editModal").classList.remove("show");};
@@ -689,6 +832,7 @@ window.applyPreset=function(start,end){document.getElementById("editStart").valu
 window.saveEdit=async function(){const off=document.getElementById("editOff").checked;const start=document.getElementById("editStart").value;const end=document.getElementById("editEnd").value;const note=document.getElementById("editNote").value.trim();if(!off&&(!start||!end)){alert("Enter both times, or mark as day off.");return;}const arr=getWeek(currentWeekStart);arr[editIndex]=off?{off:true,start:"",end:"",note}:{off:false,start,end,note};closeEdit();await setWeek(currentWeekStart,arr);renderWeek();showToast("Saved ✓");};
 window.clearDay=async function(){const arr=getWeek(currentWeekStart);arr[editIndex]=emptyDay();closeEdit();await setWeek(currentWeekStart,arr);renderWeek();};
 
+// ============ MONTH ============
 function renderMonth(){
   if(!currentMonth){const r=currentWeekStart||new Date();currentMonth=new Date(r.getFullYear(),r.getMonth(),1);}
   const year=currentMonth.getFullYear();const month=currentMonth.getMonth();
@@ -713,9 +857,9 @@ function renderMonth(){
 }
 window.changeMonth=function(dir){currentMonth=new Date(currentMonth.getFullYear(),currentMonth.getMonth()+dir,1);renderMonth();};
 
+// ============ SETTINGS ============
 window.openSettings=function(){const s=(viewingData&&viewingData.settings)||{};document.getElementById("setTheme").value=document.documentElement.getAttribute("data-theme")||"dark";document.getElementById("setLang").value=currentLang;document.getElementById("setCompany").value=s.company||"";document.getElementById("setCompanyPlace").value=s.companyPlace||"";document.getElementById("setPosition").value=s.position||"";document.getElementById("setRate").value=s.hourlyRate||"";document.getElementById("setCurrency").value=s.currency||"€";document.getElementById("setTarget").value=s.targetWeekly||"";document.getElementById("setAlarmEnabled").checked=!!s.alarmEnabled;document.getElementById("setAlarmBefore").value=s.alarmBefore||30;document.getElementById("settingsModal").classList.add("show");};
 window.closeSettings=function(){document.getElementById("settingsModal").classList.remove("show");};
-
 window.saveSettings=async function(){
   const fns=window.fbFns;if(!viewingUid)return;
   const theme=document.getElementById("setTheme").value;const lang=document.getElementById("setLang").value;
@@ -725,15 +869,15 @@ window.saveSettings=async function(){
   try{await fns.updateDoc(fns.doc(window.fbDb,"users",viewingUid),{settings:newSettings});showToast("✓");closeSettings();updateWorkInfoDisplay();renderWeek();if(document.getElementById("tab-month").style.display==="block")renderMonth();}catch(e){showToast("Save failed: "+e.message);}
 };
 
-// ============ TRANSFER DATA (OWNER ONLY) ============
+// ============ TRANSFER ============
 window.openTransferModal=function(){
   if(!window.isOwner)return;
   closeMenuModal();
   const sel=document.getElementById("transferSource");
   sel.innerHTML=`<option value="">— pick a user —</option>`;
   allUsers.forEach(u=>{
-    const opt=document.createElement("option");
-    opt.value=u.uid;
+    if(u.uid===window.currentAuthUser.uid)return;
+    const opt=document.createElement("option");opt.value=u.uid;
     const count=Object.keys(u.shifts||{}).length;
     opt.textContent=`${u.name||u.email} (${count} weeks)`;
     sel.appendChild(opt);
@@ -760,7 +904,7 @@ window.doTransferData=async function(){
     if(viewingData.settings.language){currentLang=viewingData.settings.language;localStorage.setItem(K_LANG,currentLang);applyTranslations();}
     closeTransferModal();
     showToast("✓ Data copied successfully");
-    renderWeek();updateWorkInfoDisplay();
+    renderWeek();updateWorkInfoDisplay();renderOwnerDashboard();
   }catch(e){showToast("Transfer failed: "+e.message);}
 };
 
@@ -798,7 +942,6 @@ window.closeMenuModal=function(){document.getElementById("menuModal").classList.
 function buildBackupData(){return JSON.stringify({profile:viewingData&&viewingData.name,email:viewingData&&viewingData.email,shifts:(viewingData&&viewingData.shifts)||{},settings:(viewingData&&viewingData.settings)||{},exportedAt:new Date().toISOString()},null,2);}
 window.downloadBackup=function(){const data=buildBackupData();const blob=new Blob([data],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`zin-w-${fmtDate(new Date())}.json`;a.click();URL.revokeObjectURL(url);closeMenuModal();closeSettings();};
 window.emailBackup=function(){const data=buildBackupData();const subject=encodeURIComponent("ZiN W — Backup "+fmtDate(new Date()));const body=encodeURIComponent("Backup:\n\n"+data);const mailto=`mailto:?subject=${subject}&body=${body}`;if(mailto.length>7000){if(confirm("Backup is large. Download instead?"))downloadBackup();return;}window.location.href=mailto;closeMenuModal();closeSettings();};
-
 window.deleteViewingUser=async function(){const fns=window.fbFns;if(!window.isOwner)return;if(viewingUid===window.currentAuthUser.uid){alert("You can't delete yourself.");return;}if(!confirm("Delete this profile and all its data?"))return;try{await fns.deleteDoc(fns.doc(window.fbDb,"users",viewingUid));showToast("Profile deleted");closeMenuModal();await loadAllUsers();await switchViewingTo(window.currentAuthUser.uid);}catch(e){showToast("Delete failed: "+e.message);}};
 
 document.addEventListener("keydown",(e)=>{if(e.key==="Escape"){document.querySelectorAll(".modal-bg.show").forEach(m=>m.classList.remove("show"));}});
