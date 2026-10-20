@@ -193,7 +193,7 @@
       </div>
       <div class="brand-text">
         <h1>ZiN <span class="accent">W</span></h1>
-        <div class="slogan" id="t-slogan">Plan Your Work</div>
+        <div class="slogan">Plan Your Work</div>
         <div class="work-info-line" id="workInfoLine"></div>
       </div>
     </div>
@@ -512,14 +512,12 @@ onAuthStateChanged(auth, async (user) => {
 
 <script>
 "use strict";
-const K_THEME="zw_theme_v15";
+// আগের কোডে currentLang ডিফাইন করা ছিল না, সেটাই এখানে ঠিক করা হয়েছে
+const currentLang = "en"; 
 const DAY_FULL={en:["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],it:["Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato","Domenica"]};
 const DAY_SHORT={en:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],it:["Lun","Mar","Mer","Gio","Ven","Sab","Dom"]};
 
 let currentWeekStart=null,currentMonth=null,editIndex=-1,viewingUid=null,viewingData=null,allUsers=[],unsubscribeListener=null,adminUnsub=null,authMode="signin",alarmCheckInterval=null,firedAlarms={},adminFilterMode="all";
-
-// Track current mode: 'owner-admin', 'owner-impersonating', 'user'
-let currentMode = "user"; 
 
 const pad=n=>String(n).padStart(2,"0");
 const fmtDate=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
@@ -565,13 +563,12 @@ window.onUserSignedIn=async function(){
   } else {
     updateMyPresence();
   }
-  setInterval(updateMyPresence, 60000); // Ping every minute
+  setInterval(updateMyPresence, 60000);
 
   if(window.isOwner){
     document.getElementById("ownerBadge").style.display="inline-block";
     document.getElementById("userPill").classList.add("owner");
     document.getElementById("adminTabBtn").style.display="block";
-    currentMode = "owner-admin";
     document.getElementById("viewingBar").classList.remove("show");
     loadAllUsersRealtime();
     switchTab("admin"); 
@@ -579,7 +576,6 @@ window.onUserSignedIn=async function(){
     document.getElementById("ownerBadge").style.display="none";
     document.getElementById("userPill").classList.remove("owner");
     document.getElementById("adminTabBtn").style.display="none";
-    currentMode = "user";
     await switchViewingTo(user.uid);
     switchTab("week"); 
   }
@@ -612,17 +608,14 @@ async function switchViewingTo(uid, isImpersonating=false){
   viewingUid=uid;
   
   if(isImpersonating){
-    currentMode = "owner-impersonating";
     document.getElementById("viewingBar").classList.add("show");
     document.getElementById("viewingName").textContent="...";
-    document.getElementById("adminTabBtn").style.display="none"; // Hide Admin tab while viewing as user
+    document.getElementById("adminTabBtn").style.display="none"; 
   } else {
     if(window.isOwner){
-      currentMode = "owner-admin";
       document.getElementById("adminTabBtn").style.display="block";
       document.getElementById("viewingBar").classList.remove("show");
     } else {
-      currentMode = "user";
       document.getElementById("viewingBar").classList.remove("show");
     }
   }
@@ -652,9 +645,7 @@ window.stopImpersonation=function(){
   if(!window.isOwner)return;
   document.getElementById("viewingBar").classList.remove("show");
   document.getElementById("adminTabBtn").style.display="block";
-  currentMode = "owner-admin";
   
-  // Reset header
   document.getElementById("userName").textContent=allUsers.find(u=>u.uid===window.currentAuthUser.uid)?.name||window.currentAuthUser.email;
   document.getElementById("msgBadge").classList.remove("show");
   
@@ -723,7 +714,6 @@ function renderAdminUsers(){
     const isMe=u.uid===window.currentAuthUser.uid;
     const initials=(u.name||u.email||"?").split(" ").map(w=>w[0]||"").slice(0,2).join("").toUpperCase();
     
-    // Online Status
     let isOnline = false;
     let lastSeenStr = "Never";
     if(u.lastSeen){
@@ -732,7 +722,6 @@ function renderAdminUsers(){
       if((now - seenDate) < 120000) isOnline = true;
     }
     
-    // Duty Status
     const todayShift=getShiftToday(u);
     let dutyHtml="";
     if(todayShift){
@@ -814,6 +803,8 @@ function renderWeek(){
   document.getElementById("jumpDate").value=fmtDate(currentWeekStart);
   const today=new Date();today.setHours(0,0,0,0);
   const container=document.getElementById("weekDays");container.innerHTML="";let total=0;
+  
+  // এখানে currentLang.en ব্যবহার করা হয়েছে
   arr.forEach((s,i)=>{
     const d=addDays(currentWeekStart,i);const isToday=d.getTime()===today.getTime();
     const hrs=(s.off||!s.start||!s.end)?0:hoursBetween(s.start,s.end);total+=hrs;
@@ -823,7 +814,8 @@ function renderWeek(){
     else timeEl=`<div class="dtime empty">— not set —</div>`;
     const noteHtml=(s.note&&s.note.trim())?`<div class="dnote">📝 ${escapeHtml(s.note.length>80?s.note.slice(0,80)+"…":s.note)}</div>`:"";
     const card=document.createElement("div");card.className="day"+(isToday?" today":"");
-    card.innerHTML=`<div><div class="dname">${DAY_FULL[currentLang][i]}</div><div class="ddate">${fmtDisp(d)}</div></div><div class="dinfo">${timeEl}${noteHtml}</div><button class="day-edit-btn" onclick="openEdit(${i})">Edit</button>`;
+    
+    card.innerHTML=`<div><div class="dname">${DAY_FULL.en[i]}</div><div class="ddate">${fmtDisp(d)}</div></div><div class="dinfo">${timeEl}${noteHtml}</div><button class="day-edit-btn" onclick="openEdit(${i})">Edit</button>`;
     container.appendChild(card);
   });
   document.getElementById("weekTotal").textContent=total.toFixed(1);
@@ -834,7 +826,7 @@ function updateWeekSalary(totalHours){const el=document.getElementById("weekSala
 window.changeWeek=function(dir){currentWeekStart=addDays(currentWeekStart,7*dir);renderWeek();};
 window.goToToday=function(){currentWeekStart=getMonday(new Date());renderWeek();};
 window.jumpToDate=function(){const v=document.getElementById("jumpDate").value;if(!v)return;currentWeekStart=getMonday(parseDate(v));renderWeek();};
-window.openEdit=function(i){editIndex=i;const arr=getWeek(currentWeekStart);const s=arr[i];const d=addDays(currentWeekStart,i);document.getElementById("editTitle").textContent=`${DAY_FULL[currentLang][i]} — ${fmtDisp(d)}`;document.getElementById("editOff").checked=!!s.off;document.getElementById("editStart").value=s.start||"";document.getElementById("editEnd").value=s.end||"";document.getElementById("editNote").value=s.note||"";toggleOff();document.getElementById("editModal").classList.add("show");};
+window.openEdit=function(i){editIndex=i;const arr=getWeek(currentWeekStart);const s=arr[i];const d=addDays(currentWeekStart,i);document.getElementById("editTitle").textContent=`${DAY_FULL.en[i]} — ${fmtDisp(d)}`;document.getElementById("editOff").checked=!!s.off;document.getElementById("editStart").value=s.start||"";document.getElementById("editEnd").value=s.end||"";document.getElementById("editNote").value=s.note||"";toggleOff();document.getElementById("editModal").classList.add("show");};
 window.toggleOff=function(){document.getElementById("editTimes").style.display=document.getElementById("editOff").checked?"none":"block";};
 window.closeEdit=function(){document.getElementById("editModal").classList.remove("show");};
 window.applyPreset=function(start,end){document.getElementById("editStart").value=start;document.getElementById("editEnd").value=end;};
@@ -844,7 +836,7 @@ window.clearDay=async function(){const arr=getWeek(currentWeekStart);arr[editInd
 function renderMonth(){
   if(!currentMonth){const r=currentWeekStart||new Date();currentMonth=new Date(r.getFullYear(),r.getMonth(),1);}
   const year=currentMonth.getFullYear();const month=currentMonth.getMonth();
-  document.getElementById("monthTitle").textContent=currentMonth.toLocaleString(currentLang==="it"?"it-IT":"en-US",{month:"long",year:"numeric"});
+  document.getElementById("monthTitle").textContent=currentMonth.toLocaleString("en-US",{month:"long",year:"numeric"});
   const all=(viewingData&&viewingData.shifts)||{};let totalShifts=0,totalHours=0,sundayHours=0;
   const firstDay=new Date(year,month,1);const lastDay=new Date(year,month+1,0);
   const firstMonday=getMonday(firstDay);const mondays=[];let m=new Date(firstMonday);
