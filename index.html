@@ -31,6 +31,10 @@
   .icon-btn:hover{border-color:var(--accent);}
   .owner-badge{background:var(--accent);color:var(--bg);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px;text-transform:uppercase;}
   
+  .viewing-bar{background:color-mix(in srgb,var(--accent-2) 15%,transparent);border:1px solid var(--accent-2);border-radius:10px;padding:10px 14px;margin-bottom:14px;display:none;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+  .viewing-bar.show{display:flex;}
+  .viewing-bar .msg{font-size:13px;font-weight:600;color:var(--accent-2);}
+  
   .tabs{display:flex;gap:4px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:16px;box-shadow:var(--shadow-sm);}
   .tab{flex:1;padding:10px;background:transparent;border:none;color:var(--muted);border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap;}
   .tab.active{background:var(--panel-2);color:var(--text);}
@@ -44,7 +48,6 @@
   button.danger-text{color:var(--danger);}
   button:disabled{opacity:0.4;cursor:not-allowed;}
   
-  /* Fix AutoFill */
   input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus,input:-webkit-autofill:active{
     -webkit-box-shadow: 0 0 0 30px var(--panel-2) inset !important;
     -webkit-text-fill-color: var(--text) !important;
@@ -130,21 +133,24 @@
   .admin-toolbar input{flex:1;min-width:200px;}
   .admin-toolbar button{padding:8px 16px;}
   
-  .admin-user-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
-  .admin-user-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.15s;}
+  .admin-user-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+  .admin-user-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:all 0.15s;}
   .admin-user-card:hover{border-color:var(--accent);transform:translateY(-2px);}
   .admin-user-card .avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px;flex-shrink:0;}
   .admin-user-card .info{flex:1;min-width:0;}
   .admin-user-card .name{font-weight:700;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .admin-user-card .email{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
-  .admin-user-card .meta{font-size:11px;color:var(--muted);margin-top:6px;display:flex;gap:8px;font-weight:600;}
-  .admin-user-card .meta span{color:var(--text);}
+  .admin-user-card .meta{font-size:11px;color:var(--muted);margin-top:8px;display:flex;flex-direction:column;gap:4px;}
+  .admin-user-card .meta span{color:var(--text);font-weight:600;}
+  .admin-user-card .badge-on-duty{background:color-mix(in srgb,var(--accent) 20%,transparent);color:var(--accent);padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;margin-top:4px;display:inline-block;border:1px solid var(--accent);}
+  .admin-user-card .badge-off-duty{background:color-mix(in srgb,var(--muted) 20%,transparent);color:var(--muted);padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;margin-top:4px;display:inline-block;border:1px solid var(--border);}
 
   /* User Detail Modal */
   .user-detail-header{display:flex;align-items:center;gap:14px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border);}
   .user-detail-header .avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:20px;}
   .user-detail-header .name{font-size:17px;font-weight:700;}
   .user-detail-header .email{font-size:12px;color:var(--muted);margin-top:2px;}
+  .user-detail-header .stats{font-size:12px;color:var(--accent);font-weight:600;margin-top:4px;}
 
   @media (max-width:600px){
     .day{grid-template-columns:1fr auto;}
@@ -201,6 +207,12 @@
     </div>
   </header>
 
+  <!-- Admin Impersonation Banner -->
+  <div class="viewing-bar" id="viewingBar">
+    <div class="msg">👁 You are viewing <span id="viewingName" style="color:var(--text);"></span>'s schedule.</div>
+    <button class="primary" onclick="exitImpersonation()" style="padding:4px 10px; font-size:12px;">Exit to Admin</button>
+  </div>
+
   <div class="msg-banner" id="msgBanner" onclick="openInboxModal()">
     <span class="icon">📬</span>
     <div class="info">
@@ -211,9 +223,43 @@
   </div>
 
   <div class="tabs" id="mainTabs">
-    <button class="tab active" data-tab="week" onclick="switchTab('week')">📅 <span id="t-week">Week</span></button>
-    <button class="tab" data-tab="month" onclick="switchTab('month')">📊 <span id="t-month">Month</span></button>
-    <button class="tab" data-tab="admin" id="adminTabBtn" onclick="switchTab('admin')" style="display:none;">👑 <span id="t-admin">Admin</span></button>
+    <button class="tab" data-tab="admin" id="adminTabBtn" onclick="switchTab('admin')" style="display:none;">👑 <span>Admin</span></button>
+    <button class="tab active" data-tab="week" onclick="switchTab('week')">📅 <span>Week</span></button>
+    <button class="tab" data-tab="month" onclick="switchTab('month')">📊 <span>Month</span></button>
+  </div>
+
+  <!-- ADMIN TAB (Owner only) -->
+  <div id="tab-admin" style="display:none;">
+    <div class="admin-stats">
+      <div class="admin-stat">
+        <span class="icon">👥</span>
+        <div class="num" id="adminTotalUsers">0</div>
+        <div class="lbl">Total Users</div>
+      </div>
+      <div class="admin-stat">
+        <span class="icon">📅</span>
+        <div class="num" id="adminTotalWeeks">0</div>
+        <div class="lbl">Total Weeks</div>
+      </div>
+      <div class="admin-stat">
+        <span class="icon">⏱️</span>
+        <div class="num" id="adminTotalHours">0h</div>
+        <div class="lbl">Total Hours</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="admin-toolbar">
+        <input type="text" id="adminSearchBox" placeholder="🔍 Search by name or email..." autocomplete="new-password" oninput="renderAdminUsers()">
+      </div>
+      <div class="chip-row" id="adminFilterChips">
+        <button type="button" class="chip active" onclick="setAdminFilter('all', this)">All</button>
+        <button type="button" class="chip" onclick="setAdminFilter('duty', this)">On Duty Today</button>
+        <button type="button" class="chip" onclick="setAdminFilter('messages', this)">Unread msgs</button>
+      </div>
+    </div>
+
+    <div id="adminUserList" class="admin-user-list"></div>
   </div>
 
   <!-- WEEK TAB -->
@@ -276,41 +322,6 @@
       <div id="monthWeeks"></div>
     </div>
   </div>
-
-  <!-- ADMIN TAB (Owner only) -->
-  <div id="tab-admin" style="display:none;">
-    <div class="admin-stats">
-      <div class="admin-stat">
-        <span class="icon">👥</span>
-        <div class="num" id="adminTotalUsers">0</div>
-        <div class="lbl">Total Users</div>
-      </div>
-      <div class="admin-stat">
-        <span class="icon">📅</span>
-        <div class="num" id="adminTotalWeeks">0</div>
-        <div class="lbl">Total Weeks</div>
-      </div>
-      <div class="admin-stat">
-        <span class="icon">⏱️</span>
-        <div class="num" id="adminTotalHours">0h</div>
-        <div class="lbl">Total Hours</div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="admin-toolbar">
-        <input type="text" id="adminSearchBox" placeholder="🔍 Search by name or email..." autocomplete="new-password" oninput="renderAdminUsers()">
-        <button onclick="loadAllUsers(true)">🔄 Refresh</button>
-      </div>
-      <div class="chip-row" id="adminFilterChips">
-        <button type="button" class="chip active" onclick="setAdminFilter('all', this)">All</button>
-        <button type="button" class="chip" onclick="setAdminFilter('shifts', this)">Has shifts</button>
-        <button type="button" class="chip" onclick="setAdminFilter('messages', this)">Unread msgs</button>
-      </div>
-    </div>
-
-    <div id="adminUserList" class="admin-user-list"></div>
-  </div>
 </div>
 
 <!-- AUTH MODAL -->
@@ -328,20 +339,17 @@
     </div>
     <h3 id="authTitle" style="text-align:center;">Sign in to ZiN W</h3>
     <div id="authNameRow" style="display:none;">
-      <label id="t-yourname">Your name</label>
+      <label>Your name</label>
       <input type="text" id="authName" placeholder="e.g. Mohammed Shajalal" />
     </div>
-    <label style="margin-top:10px;" id="t-email">Email</label>
+    <label style="margin-top:10px;">Email</label>
     <input type="email" id="authEmail" placeholder="you@example.com" autocomplete="email" />
-    <label style="margin-top:10px;" id="t-password">Password</label>
+    <label style="margin-top:10px;">Password</label>
     <input type="password" id="authPassword" placeholder="At least 6 characters" autocomplete="current-password" />
     <div class="error-text" id="authError" style="display:none;"></div>
     <button class="primary" onclick="doAuth()" id="authSubmitBtn" style="width:100%;margin-top:14px;">Sign In</button>
     <div style="text-align:center;margin-top:12px;font-size:13px;">
       <a href="#" onclick="toggleAuthMode(); return false;" id="authToggleLink" style="color:var(--accent);text-decoration:none;">Don't have an account? Sign up</a>
-    </div>
-    <div style="text-align:center;margin-top:8px;font-size:12px;">
-      <a href="#" onclick="forgotPassword(); return false;" style="color:var(--muted);text-decoration:none;">Forgot password?</a>
     </div>
   </div>
 </div>
@@ -352,29 +360,29 @@
     <h3 id="editTitle">Edit shift</h3>
     <div class="checkbox-row">
       <input type="checkbox" id="editOff" onchange="toggleOff()" />
-      <label for="editOff" style="margin:0;" id="t-dayoff">Day off</label>
+      <label for="editOff" style="margin:0;">Day off</label>
     </div>
     <div id="editTimes">
-      <div class="section-label" id="t-presets">⏰ Quick presets</div>
+      <div class="section-label">⏰ Quick presets</div>
       <div class="chip-row">
         <button type="button" class="chip" onclick="applyPreset('09:00','17:00')">🌅 9–5</button>
-        <button type="button" class="chip" onclick="applyPreset('06:00','14:00')">🌄 <span id="t-morning">Morning</span></button>
-        <button type="button" class="chip" onclick="applyPreset('14:00','22:00')">☀️ <span id="t-afternoon">Afternoon</span></button>
-        <button type="button" class="chip" onclick="applyPreset('22:00','06:00')">🌙 <span id="t-night">Night</span></button>
+        <button type="button" class="chip" onclick="applyPreset('06:00','14:00')">🌄 Morning</button>
+        <button type="button" class="chip" onclick="applyPreset('14:00','22:00')">☀️ Afternoon</button>
+        <button type="button" class="chip" onclick="applyPreset('22:00','06:00')">🌙 Night</button>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div><label id="t-start">Start time</label><input type="time" id="editStart" /></div>
-        <div><label id="t-end">End time</label><input type="time" id="editEnd" /></div>
+        <div><label>Start time</label><input type="time" id="editStart" /></div>
+        <div><label>End time</label><input type="time" id="editEnd" /></div>
       </div>
     </div>
     <div class="modal-section">
-      <div class="section-label" id="t-notes">📝 Details / Notes</div>
+      <div class="section-label">📝 Details / Notes</div>
       <textarea id="editNote" rows="3" placeholder="Optional notes..."></textarea>
     </div>
     <div class="actions">
-      <button onclick="clearDay()" class="danger-text" id="t-clear">Clear</button>
-      <button onclick="closeEdit()" id="t-cancel">Cancel</button>
-      <button class="primary" onclick="saveEdit()" id="t-save">Save</button>
+      <button onclick="clearDay()" class="danger-text">Clear</button>
+      <button onclick="closeEdit()">Cancel</button>
+      <button class="primary" onclick="saveEdit()">Save</button>
     </div>
   </div>
 </div>
@@ -387,11 +395,18 @@
       <div style="flex:1;">
         <div class="name" id="udName">—</div>
         <div class="email" id="udEmail">—</div>
-        <div style="font-size:12px; color:var(--accent); font-weight:600; margin-top:4px;" id="udStats">—</div>
+        <div class="stats" id="udStats">—</div>
       </div>
     </div>
-    <div class="section-label" id="udWeekLabel">📅 This Week's Schedule</div>
-    <div id="udWeekList" style="margin-bottom:16px;"></div>
+    
+    <div class="section-label" style="display:flex; justify-content:space-between;">
+      <span>🕒 App Activity</span>
+      <span id="udLastSeen" style="color:var(--muted); font-weight:normal;">Last seen: —</span>
+    </div>
+    
+    <div class="section-label" style="margin-top:16px;">📅 This Week's Schedule</div>
+    <div id="udWeekList" style="margin-bottom:16px; background:var(--panel-2); padding:10px; border-radius:8px;"></div>
+    
     <div class="actions" style="flex-direction:column; align-items:stretch;">
       <button onclick="udSwitchToUser()" class="primary" style="width:100%; margin-bottom:8px;">⚙️ Manage Schedule</button>
       <button onclick="udSendMessage()" style="width:100%; margin-bottom:8px;">✉️ Send Message</button>
@@ -403,73 +418,47 @@
 <!-- SETTINGS MODAL -->
 <div class="modal-bg" id="settingsModal">
   <div class="modal">
-    <h3>⚙️ <span id="t-settings">Settings</span></h3>
-
+    <h3>⚙️ Settings</h3>
     <div class="modal-section">
-      <div class="section-label" id="t-appearance">🎨 Appearance</div>
-      <label id="t-theme">Theme</label>
+      <div class="section-label">🎨 Appearance</div>
+      <label>Theme</label>
       <select id="setTheme">
-        <option value="dark" id="t-dark">🌙 Dark</option>
-        <option value="light" id="t-light">☀️ Light</option>
-      </select>
-      <label style="margin-top:8px;" id="t-language">Language</label>
-      <select id="setLang">
-        <option value="en">🇬🇧 English</option>
-        <option value="it">🇮🇹 Italiano</option>
+        <option value="dark">🌙 Dark</option>
+        <option value="light">☀️ Light</option>
       </select>
     </div>
-
     <div class="modal-section">
-      <div class="section-label" id="t-workinfo">🏢 Work Info</div>
-      <label id="t-company">Company name</label>
+      <div class="section-label">🏢 Work Info</div>
+      <label>Company name</label>
       <input type="text" id="setCompany" maxlength="60" />
-      <label style="margin-top:8px;" id="t-place">Place</label>
+      <label style="margin-top:8px;">Place</label>
       <input type="text" id="setCompanyPlace" maxlength="60" />
-      <label style="margin-top:8px;" id="t-position">Position / Level</label>
+      <label style="margin-top:8px;">Position / Level</label>
       <input type="text" id="setPosition" maxlength="60" />
     </div>
-
     <div class="modal-section">
-      <div class="section-label" id="t-workpay">💰 Work & Pay</div>
-      <label id="t-rate">Hourly rate</label>
+      <div class="section-label">💰 Work & Pay</div>
+      <label>Hourly rate</label>
       <input type="number" id="setRate" step="0.01" min="0" />
-      <label style="margin-top:8px;" id="t-currency">Currency symbol</label>
+      <label style="margin-top:8px;">Currency symbol</label>
       <input type="text" id="setCurrency" maxlength="4" />
-      <label style="margin-top:8px;" id="t-weektarget">Weekly target (hours)</label>
-      <input type="number" id="setTarget" step="0.5" min="0" />
     </div>
-
     <div class="modal-section">
-      <div class="section-label" id="t-alarm">⏰ Alarm / Reminder</div>
+      <div class="section-label">⏰ Alarm / Reminder</div>
       <div class="checkbox-row">
         <input type="checkbox" id="setAlarmEnabled" />
-        <label for="setAlarmEnabled" style="margin:0;" id="t-alarmenabled">Enable shift reminder</label>
+        <label for="setAlarmEnabled" style="margin:0;">Enable shift reminder</label>
       </div>
-      <label id="t-remind">Remind me (minutes before shift)</label>
+      <label>Minutes before shift</label>
       <input type="number" id="setAlarmBefore" min="1" max="120" step="5" />
-      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
-        <button type="button" onclick="testAlarm()" style="flex:1;">🔔 <span id="t-testalarm">Test alarm</span></button>
-        <button type="button" onclick="requestNotifPerm()" style="flex:1;">🔕 <span id="t-allownotif">Allow notifications</span></button>
-      </div>
     </div>
-
     <div class="modal-section">
-      <div class="section-label">💾 <span id="t-data">Data</span></div>
-      <div class="row" style="flex-direction:column;align-items:stretch;gap:8px;">
-        <button onclick="downloadBackup()">⬇ <span id="t-download">Download backup</span></button>
-        <button onclick="emailBackup()">📧 <span id="t-emaildata">Email my data</span></button>
-        <button onclick="closeSettings(); openFeedbackModal();" class="ghost">💬 <span id="t-feedback">Send Feedback / Support</span></button>
-      </div>
+      <div class="section-label">👤 Account</div>
+      <button onclick="closeSettings(); signOutUser();" style="width:100%;color:var(--danger);">🚪 Sign out</button>
     </div>
-
-    <div class="modal-section">
-      <div class="section-label" id="t-account">👤 Account</div>
-      <button onclick="closeSettings(); signOutUser();" style="width:100%;color:var(--danger);">🚪 <span id="t-signout2">Sign out</span></button>
-    </div>
-
     <div class="actions">
-      <button onclick="closeSettings()" id="t-cancel2">Cancel</button>
-      <button class="primary" onclick="saveSettings()" id="t-save2">Save Settings</button>
+      <button onclick="closeSettings()">Cancel</button>
+      <button class="primary" onclick="saveSettings()">Save</button>
     </div>
   </div>
 </div>
@@ -477,33 +466,22 @@
 <!-- MENU MODAL -->
 <div class="modal-bg" id="menuModal">
   <div class="modal">
-    <h3 id="t-menu">Menu</h3>
+    <h3>Menu</h3>
     <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">
-      <span id="t-loggedin">Logged in as</span> <strong style="color:var(--text);" id="menuUserEmail">—</strong>
+      Logged in as <strong style="color:var(--text);" id="menuUserEmail">—</strong>
     </div>
-
     <div class="menu-work-card" id="menuWorkCard" style="display:none;">
-      <div class="row-line" id="mwcCompany" style="display:none;"><span class="icon">🏢</span> <strong id="t-company2">Company:</strong> <span id="mwcCompanyVal"></span></div>
-      <div class="row-line" id="mwcPlace" style="display:none;"><span class="icon">📍</span> <strong id="t-place2">Place:</strong> <span id="mwcPlaceVal"></span></div>
-      <div class="row-line" id="mwcPosition" style="display:none;"><span class="icon">💼</span> <strong id="t-position2">Position:</strong> <span id="mwcPositionVal"></span></div>
+      <div class="row-line" id="mwcCompany" style="display:none;"><span class="icon">🏢</span> <strong>Company:</strong> <span id="mwcCompanyVal"></span></div>
+      <div class="row-line" id="mwcPlace" style="display:none;"><span class="icon">📍</span> <strong>Place:</strong> <span id="mwcPlaceVal"></span></div>
+      <div class="row-line" id="mwcPosition" style="display:none;"><span class="icon">💼</span> <strong>Position:</strong> <span id="mwcPositionVal"></span></div>
     </div>
-
     <div class="row" style="flex-direction:column;align-items:stretch;gap:8px;">
-      <button onclick="openInboxModal()">📬 <span id="t-inbox">Inbox</span> <span class="pill-badge" id="menuMsgBadge" style="margin-left:6px;">0</span></button>
-      <button onclick="closeMenuModal(); openSettings();">⚙️ <span id="t-settings2">Settings</span></button>
-      <button onclick="closeMenuModal(); openFeedbackModal();">💬 <span id="t-feedback2">Feedback / Support</span></button>
-      <hr style="border-color:var(--border);margin:6px 0;"/>
-      <button onclick="signOutUser()" style="color:var(--danger);">🚪 <span id="t-signout">Sign out</span></button>
-      <div id="ownerMenu" style="display:none;">
-        <hr style="border-color:var(--border);margin:6px 0;"/>
-        <div style="font-size:11px;color:var(--accent);text-transform:uppercase;margin-bottom:6px;" id="t-ownercontrols">Owner controls</div>
-        <button onclick="closeMenuModal(); switchTab('admin');" style="width:100%;margin-bottom:6px;">👑 <span id="t-openDashboard">Open Admin Dashboard</span></button>
-        <button onclick="openFeedbackInbox()" style="width:100%;margin-bottom:6px;">📥 <span id="t-viewfeedback">View Feedback</span> <span class="pill-badge" id="fbBadge" style="margin-left:6px;">0</span></button>
-        <button onclick="openTransferModal()" style="width:100%;margin-bottom:6px;">📤 <span id="t-transfer">Copy data from a user</span></button>
-      </div>
+      <button onclick="openInboxModal()">📬 Inbox <span class="pill-badge" id="menuMsgBadge" style="margin-left:6px;">0</span></button>
+      <button onclick="closeMenuModal(); openSettings();">⚙️ Settings</button>
+      <button onclick="signOutUser()" style="color:var(--danger);">🚪 Sign out</button>
     </div>
     <div class="actions">
-      <button class="primary" onclick="closeMenuModal()" id="t-close">Close</button>
+      <button class="primary" onclick="closeMenuModal()">Close</button>
     </div>
   </div>
 </div>
@@ -511,17 +489,15 @@
 <!-- SEND MESSAGE MODAL -->
 <div class="modal-bg" id="sendMessageModal">
   <div class="modal">
-    <h3 id="t-sendmsg2">✉️ Send Message</h3>
+    <h3>✉️ Send Message</h3>
     <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">
-      <span id="t-to">To:</span> <strong id="sendMsgTo" style="color:var(--accent);">—</strong>
+      To: <strong id="sendMsgTo" style="color:var(--accent);">—</strong>
     </div>
-    <label id="t-messagetext">Message</label>
+    <label>Message</label>
     <textarea id="sendMsgText" rows="5" placeholder="Type your message..."></textarea>
-    <div style="font-size:11px;color:var(--muted);margin-top:6px;" id="t-msghint">💡 User will see this in their Inbox. You can also send via email.</div>
     <div class="actions" style="flex-direction:column;align-items:stretch;">
-      <button class="primary" onclick="sendMessage()" style="width:100%;">📨 <span id="t-send">Send in-app</span></button>
-      <button onclick="sendMessageEmail()" style="width:100%;">📧 <span id="t-sendemail">Send via email</span></button>
-      <button onclick="closeSendMessageModal()" class="ghost" style="width:100%;" id="t-cancel3">Cancel</button>
+      <button class="primary" onclick="sendMessage()" style="width:100%;">📨 Send in-app</button>
+      <button onclick="closeSendMessageModal()" class="ghost" style="width:100%;">Cancel</button>
     </div>
   </div>
 </div>
@@ -529,59 +505,11 @@
 <!-- INBOX MODAL -->
 <div class="modal-bg" id="inboxModal">
   <div class="modal">
-    <h3 id="t-inbox2">📬 Inbox</h3>
+    <h3>📬 Inbox</h3>
     <div class="msg-list" id="msgList"></div>
     <div class="actions">
-      <button onclick="markAllRead()" class="ghost" id="t-markread">Mark all read</button>
-      <button class="primary" onclick="closeInboxModal()" id="t-close2">Close</button>
-    </div>
-  </div>
-</div>
-
-<!-- FEEDBACK MODAL -->
-<div class="modal-bg" id="feedbackModal">
-  <div class="modal">
-    <h3 id="t-feedback3">💬 Feedback / Support</h3>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:10px;" id="t-fbhint">Send a message to the owner. Report bugs, request features, or ask questions.</div>
-    <label id="t-type">Type</label>
-    <div class="fb-type-chips" id="fbTypes">
-      <button type="button" class="fb-type-chip active" data-fb="bug">🐛 <span id="t-bug">Bug</span></button>
-      <button type="button" class="fb-type-chip" data-fb="feature">✨ <span id="t-feature">Feature</span></button>
-      <button type="button" class="fb-type-chip" data-fb="question">❓ <span id="t-question">Question</span></button>
-      <button type="button" class="fb-type-chip" data-fb="other">💭 <span id="t-other">Other</span></button>
-    </div>
-    <label style="margin-top:8px;" id="t-message">Message</label>
-    <textarea id="fbText" rows="5" placeholder="Describe your issue or idea..."></textarea>
-    <div class="error-text" id="fbError" style="display:none;"></div>
-    <div class="actions">
-      <button onclick="closeFeedbackModal()" id="t-cancel4">Cancel</button>
-      <button class="primary" onclick="submitFeedback()" id="t-send2">Send</button>
-    </div>
-  </div>
-</div>
-
-<!-- FEEDBACK INBOX MODAL -->
-<div class="modal-bg" id="feedbackInboxModal">
-  <div class="modal">
-    <h3 id="t-viewfeedback2">📥 User Feedback</h3>
-    <div class="msg-list" id="fbList"></div>
-    <div class="actions">
-      <button class="primary" onclick="closeFeedbackInbox()" id="t-close3">Close</button>
-    </div>
-  </div>
-</div>
-
-<!-- TRANSFER DATA MODAL -->
-<div class="modal-bg" id="transferModal">
-  <div class="modal">
-    <h3 id="t-transfer2">📤 Copy data from a user</h3>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;" id="t-transferhint">Copy another user's shifts and settings into your account. Use this when migrating from an old account to your new owner account.</div>
-    <label id="t-sourceuser">Source user</label>
-    <select id="transferSource"></select>
-    <div style="font-size:11px;color:var(--warn);margin-top:10px;font-weight:600;">⚠ This will OVERWRITE your current shifts & settings. Make a backup first.</div>
-    <div class="actions">
-      <button onclick="closeTransferModal()" id="t-cancel5">Cancel</button>
-      <button class="primary" onclick="doTransferData()" id="t-copydata">Copy to my account</button>
+      <button onclick="markAllRead()" class="ghost">Mark all read</button>
+      <button class="primary" onclick="closeInboxModal()">Close</button>
     </div>
   </div>
 </div>
@@ -592,11 +520,11 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  signOut, onAuthStateChanged, sendPasswordResetEmail, updateProfile
+  signOut, onAuthStateChanged, updateProfile
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
-  collection, getDocs, onSnapshot, serverTimestamp, addDoc, query, orderBy
+  getFirestore, doc, getDoc, setDoc, updateDoc,
+  collection, getDocs, onSnapshot, serverTimestamp, addDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -617,9 +545,9 @@ window.fbAuth = auth;
 window.fbDb = db;
 window.fbFns = {
   createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  signOut, sendPasswordResetEmail, updateProfile,
-  doc, getDoc, setDoc, updateDoc, deleteDoc,
-  collection, getDocs, onSnapshot, serverTimestamp, addDoc, query, orderBy,
+  signOut, updateProfile,
+  doc, getDoc, setDoc, updateDoc,
+  collection, getDocs, onSnapshot, serverTimestamp, addDoc,
   OWNER_EMAIL
 };
 
@@ -638,18 +566,11 @@ onAuthStateChanged(auth, async (user) => {
 
 <script>
 "use strict";
-const K_THEME="zw_theme_v13";const K_LANG="zw_lang_v1";
+const K_THEME="zw_theme_v14";const K_LANG="zw_lang_v1";
 const DAY_FULL={en:["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],it:["Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato","Domenica"]};
 const DAY_SHORT={en:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],it:["Lun","Mar","Mer","Gio","Ven","Sab","Dom"]};
-const T={
-en:{slogan:"Plan Your Work",week:"Week",month:"Month",admin:"Admin",today:"Today",weektotal:"Week total",exportweek:"Export Week as PDF",shifts:"Shifts",totalhours:"Total Hours",avg:"Avg/shift",sunday:"Sunday Hours",exportmonth:"Export Month as PDF",salary:"Estimated Salary",thismonth:"This month (gross)",weeklybreak:"Weekly breakdown",notes:"📝 Details / Notes",start:"Start time",end:"End time",presets:"⏰ Quick presets",morning:"Morning",afternoon:"Afternoon",night:"Night",dayoff:"Day off",clear:"Clear",cancel:"Cancel",save:"Save",close:"Close",settings:"Settings",appearance:"🎨 Appearance",theme:"Theme",dark:"🌙 Dark",light:"☀️ Light",language:"Language",workinfo:"🏢 Work Info (optional)",company:"Company name",place:"Place",position:"Position / Level",workpay:"💰 Work & Pay",rate:"Hourly rate",currency:"Currency symbol",weektarget:"Weekly target (hours)",alarm:"⏰ Alarm / Reminder",alarmenabled:"Enable shift reminder",remind:"Remind me (minutes before shift)",testalarm:"Test alarm",allownotif:"Allow notifications",data:"Data",download:"Download backup",emaildata:"Email my data",feedback:"Send Feedback / Support",menu:"Menu",loggedin:"Logged in as",inbox:"Inbox",signout:"Sign out",signout2:"Sign out",account:"👤 Account",ownercontrols:"Owner controls",openDashboard:"Open Admin Dashboard",viewfeedback:"View Feedback",to:"To:",messagetext:"Message",msghint:"💡 User will see this in their Inbox.",send:"Send in-app",sendemail:"Send via email",markread:"Mark all read",fbhint:"Send a message to the owner.",type:"Type",bug:"Bug",feature:"Feature",question:"Question",other:"Other",message:"Message",company2:"Company:",place2:"Place:",position2:"Position:",yourname:"Your name",email:"Email",password:"Password",transfer2:"📤 Copy data from a user",transferhint:"Copy another user's shifts into your account.",sourceuser:"Source user",copydata:"Copy to my account"},
-it:{slogan:"Pianifica il tuo lavoro",week:"Settimana",month:"Mese",admin:"Admin",today:"Oggi",weektotal:"Totale settimana",exportweek:"Esporta settimana in PDF",shifts:"Turni",totalhours:"Ore totali",avg:"Media/turno",sunday:"Ore domenicali",exportmonth:"Esporta mese in PDF",salary:"Stipendio stimato",thismonth:"Questo mese (lordo)",weeklybreak:"Riepilogo settimanale",notes:"📝 Dettagli / Note",start:"Ora inizio",end:"Ora fine",presets:"⏰ Preset rapidi",morning:"Mattina",afternoon:"Pomeriggio",night:"Notte",dayoff:"Giorno libero",clear:"Cancella",cancel:"Annulla",save:"Salva",close:"Chiudi",settings:"Impostazioni",appearance:"🎨 Aspetto",theme:"Tema",dark:"🌙 Scuro",light:"☀️ Chiaro",language:"Lingua",workinfo:"🏢 Info Lavoro (opzionale)",company:"Nome azienda",place:"Luogo",position:"Posizione / Livello",workpay:"💰 Lavoro & Paga",rate:"Tariffa oraria",currency:"Simbolo valuta",weektarget:"Obiettivo settimanale (ore)",alarm:"⏰ Sveglia / Promemoria",alarmenabled:"Attiva promemoria turno",remind:"Ricordami (minuti prima del turno)",testalarm:"Testa sveglia",allownotif:"Consenti notifiche",data:"Dati",download:"Scarica backup",emaildata:"Invia i miei dati",feedback:"Invia Feedback / Supporto",menu:"Menu",loggedin:"Connesso come",inbox:"Posta",signout:"Esci",signout2:"Esci",account:"👤 Account",ownercontrols:"Controlli proprietario",openDashboard:"Apri Dashboard Admin",viewfeedback:"Vedi Feedback",to:"A:",messagetext:"Messaggio",msghint:"💡 L'utente vedrà questo nella sua Posta.",send:"Invia in-app",sendemail:"Invia via email",markread:"Segna tutti come letti",fbhint:"Invia un messaggio al proprietario.",type:"Tipo",bug:"Bug",feature:"Funzionalità",question:"Domanda",other:"Altro",message:"Messaggio",company2:"Azienda:",place2:"Luogo:",position2:"Posizione:",yourname:"Il tuo nome",email:"Email",password:"Password",transfer2:"📤 Copia dati da un utente",transferhint:"Copia i turni di un altro utente nel tuo account.",sourceuser:"Utente di origine",copydata:"Copia nel mio account"}
-};
-let currentLang=localStorage.getItem(K_LANG)||"en";
-function t(k){return(T[currentLang]&&T[currentLang][k])||(T.en[k])||k;}
-function applyTranslations(){document.querySelectorAll('[id^="t-"]').forEach(el=>{const k=el.id.substring(2);if(T[currentLang][k])el.textContent=T[currentLang][k];});}
 
-let currentWeekStart=null,currentMonth=null,editIndex=-1,viewingUid=null,viewingData=null,allUsers=[],unsubscribeListener=null,authMode="signin",alarmCheckInterval=null,firedAlarms={},feedbackType="bug",unsubFeedback=null,feedbackCount=0,adminFilterMode="all",selectedAdminUid=null;
+let currentWeekStart=null,currentMonth=null,editIndex=-1,viewingUid=null,viewingData=null,allUsers=[],unsubscribeListener=null,authMode="signin",alarmCheckInterval=null,firedAlarms={},adminFilterMode="all",selectedAdminUid=null,adminUnsub=null;
 
 const pad=n=>String(n).padStart(2,"0");
 const fmtDate=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
@@ -660,101 +581,129 @@ function getMonday(d){const x=new Date(d);const day=x.getDay();x.setDate(x.getDa
 function hoursBetween(s,e){if(!s||!e)return 0;const[sh,sm]=s.split(":").map(Number);const[eh,em]=e.split(":").map(Number);let m=(eh*60+em)-(sh*60+sm);if(m<0)m+=1440;return m/60;}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);}
 function showToast(msg,ms=2500){const el=document.getElementById("toast");el.textContent=msg;el.classList.add("show");clearTimeout(el._timer);el._timer=setTimeout(()=>el.classList.remove("show"),ms);}
-function applyTheme(th){document.documentElement.setAttribute("data-theme",th);document.getElementById("themeBtn").textContent=th==="light"?"☀️":"🌙";const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=th==="light"?"#f0f3f7":"#010409";localStorage.setItem(K_THEME,th);}
+function applyTheme(th){document.documentElement.setAttribute("data-theme",th);document.getElementById("themeBtn").textContent=th==="light"?"☀️":"🌙";localStorage.setItem(K_THEME,th);}
 function toggleTheme(){const cur=document.documentElement.getAttribute("data-theme")||"dark";applyTheme(cur==="dark"?"light":"dark");}
-window.toggleTheme=toggleTheme;
-function defaultSettings(){return{currency:"€",hourlyRate:0,targetWeekly:0,alarmEnabled:false,alarmBefore:30,company:"",companyPlace:"",position:"",language:"en"};}
+function defaultSettings(){return{currency:"€",hourlyRate:0,alarmEnabled:false,alarmBefore:30,company:"",companyPlace:"",position:""};}
+
+// Format Time Ago
+function timeAgo(date){if(!date)return"Never";const sec=Math.floor((new Date()-date)/1000);let interval=sec/31536000;if(interval>1)return Math.floor(interval)+"y ago";interval=sec/2592000;if(interval>1)return Math.floor(interval)+"mo ago";interval=sec/86400;if(interval>1)return Math.floor(interval)+"d ago";interval=sec/3600;if(interval>1)return Math.floor(interval)+"h ago";interval=sec/60;if(interval>1)return Math.floor(interval)+"m ago";if(sec>10)return"Just now";return"Online";}
+
+// Track presence
+function updateMyPresence(){
+  if(!window.currentAuthUser)return;
+  const fns=window.fbFns;
+  fns.updateDoc(fns.doc(window.fbDb,"users",window.currentAuthUser.uid),{lastSeen:fns.serverTimestamp()}).catch(()=>{});
+}
 
 window.onUserSignedIn=async function(){
   const user=window.currentAuthUser;const fns=window.fbFns;
   document.getElementById("splash").style.display="none";
   document.getElementById("appContainer").style.display="block";
   document.getElementById("authModal").classList.remove("show");
+  
   const userRef=fns.doc(window.fbDb,"users",user.uid);
   const snap=await fns.getDoc(userRef);
   if(!snap.exists()){
-    await fns.setDoc(userRef,{name:user.displayName||(user.email.split("@")[0]),email:user.email,createdAt:fns.serverTimestamp(),shifts:{},messages:[],settings:defaultSettings()});
+    await fns.setDoc(userRef,{name:user.displayName||(user.email.split("@")[0]),email:user.email,createdAt:fns.serverTimestamp(),lastSeen:fns.serverTimestamp(),shifts:{},messages:[],settings:defaultSettings()});
+  } else {
+    updateMyPresence();
   }
+  setInterval(updateMyPresence, 60000); // update every minute
+
   if(window.isOwner){
     document.getElementById("ownerBadge").style.display="inline-block";
     document.getElementById("userPill").classList.add("owner");
     document.getElementById("adminTabBtn").style.display="block";
-    await loadAllUsers();
-    startFeedbackListener();
+    loadAllUsersRealtime();
+    switchTab("admin"); // Default to Admin tab for owner
   }else{
     document.getElementById("ownerBadge").style.display="none";
     document.getElementById("userPill").classList.remove("owner");
     document.getElementById("adminTabBtn").style.display="none";
+    await switchViewingTo(user.uid); // load self
+    switchTab("week"); // Default to Week tab for user
   }
-  await switchViewingTo(user.uid);
   startAlarmChecker();
 };
 
 window.onUserSignedOut=function(){
   if(unsubscribeListener){unsubscribeListener();unsubscribeListener=null;}
+  if(adminUnsub){adminUnsub();adminUnsub=null;}
   if(alarmCheckInterval){clearInterval(alarmCheckInterval);alarmCheckInterval=null;}
-  if(unsubFeedback){unsubFeedback();unsubFeedback=null;}
   viewingUid=null;viewingData=null;
-  document.getElementById("splash").style.display="none";
   document.getElementById("appContainer").style.display="none";
   document.getElementById("authModal").classList.add("show");
 };
 
-async function loadAllUsers(silent){
+function loadAllUsersRealtime(){
   const fns=window.fbFns;
-  try{
-    const snap=await fns.getDocs(fns.collection(window.fbDb,"users"));
+  if(adminUnsub)adminUnsub();
+  const q=fns.collection(window.fbDb,"users");
+  adminUnsub=fns.onSnapshot(q,(snap)=>{
     allUsers=[];
     snap.forEach(d=>{allUsers.push({uid:d.id,...d.data()});});
     renderAdminDashboard();
-    if(!silent) showToast(`Loaded ${allUsers.length} users`);
-  }catch(e){
-    console.error(e);
-    if(!silent) showToast("Could not load users");
-  }
+  });
 }
 
-async function switchViewingTo(uid){
+// Impersonate / View User
+async function switchViewingTo(uid, isImpersonating=false){
   const fns=window.fbFns;
   if(unsubscribeListener){unsubscribeListener();}
   viewingUid=uid;
+  
+  if(isImpersonating){
+    document.getElementById("viewingBar").classList.add("show");
+    document.getElementById("viewingName").textContent="...";
+    document.getElementById("adminTabBtn").style.display="block"; // keep tab
+  } else {
+    document.getElementById("viewingBar").classList.remove("show");
+  }
+
   const userRef=fns.doc(window.fbDb,"users",uid);
   unsubscribeListener=fns.onSnapshot(userRef,(snap)=>{
     if(snap.exists()){
       viewingData=snap.data();
-      refreshUserPill();updateWorkInfoDisplay();updateMessageBadge();
+      
+      // Update Header
+      const name=viewingData.name||viewingData.email||"User";
+      document.getElementById("userName").textContent=name;
+      document.getElementById("menuUserEmail").textContent=window.currentAuthUser?window.currentAuthUser.email:"";
+      if(isImpersonating) document.getElementById("viewingName").textContent=name;
+      
+      // update unread badge for viewed user
+      const msgs=(viewingData.messages)||[];
+      const unread=msgs.filter(m=>!m.read).length;
+      if(unread>0){document.getElementById("msgBadge").textContent=unread;document.getElementById("msgBadge").classList.add("show");}
+      else{document.getElementById("msgBadge").classList.remove("show");}
+
       if(currentWeekStart)renderWeek();
       if(document.getElementById("tab-month").style.display==="block")renderMonth();
     }
-  },(err)=>{console.error("Listen error:",err);});
-}
-function refreshUserPill(){if(!viewingData)return;const name=viewingData.name||viewingData.email||"User";document.getElementById("userName").textContent=name;document.getElementById("menuUserEmail").textContent=window.currentAuthUser?window.currentAuthUser.email:"";}
-
-function updateWorkInfoDisplay(){
-  const s=(viewingData&&viewingData.settings)||{};
-  const company=(s.company||"").trim(),place=(s.companyPlace||"").trim(),position=(s.position||"").trim();
-  const el=document.getElementById("workInfoLine");
-  const parts=[];if(position)parts.push(escapeHtml(position));if(company)parts.push(escapeHtml(company));
-  let line=parts.join(' <span class="sep">·</span> ');
-  if(place)line+=(line?'<span class="sep">·</span>':'')+escapeHtml(place);
-  if(line){el.innerHTML=line;el.style.display="block";}else{el.style.display="none";}
-  const card=document.getElementById("menuWorkCard");let any=false;
-  if(company){document.getElementById("mwcCompany").style.display="block";document.getElementById("mwcCompanyVal").textContent=company;any=true;}else document.getElementById("mwcCompany").style.display="none";
-  if(place){document.getElementById("mwcPlace").style.display="block";document.getElementById("mwcPlaceVal").textContent=place;any=true;}else document.getElementById("mwcPlace").style.display="none";
-  if(position){document.getElementById("mwcPosition").style.display="block";document.getElementById("mwcPositionVal").textContent=position;any=true;}else document.getElementById("mwcPosition").style.display="none";
-  card.style.display=any?"block":"none";
+  });
 }
 
-function updateMessageBadge(){const msgs=(viewingData&&viewingData.messages)||[];const unread=msgs.filter(m=>!m.read).length;const badge=document.getElementById("msgBadge");const menuBadge=document.getElementById("menuMsgBadge");if(unread>0){badge.textContent=unread;badge.classList.add("show");menuBadge.textContent=unread;menuBadge.classList.add("show");document.getElementById("msgBanner").classList.add("show");document.getElementById("msgBannerCount").textContent=`${unread} new message${unread>1?"s":""}`;}else{badge.classList.remove("show");menuBadge.classList.remove("show");document.getElementById("msgBanner").classList.remove("show");}}
-window.dismissBanner=function(){document.getElementById("msgBanner").classList.remove("show");};
+window.exitImpersonation=function(){
+  if(!window.isOwner)return;
+  document.getElementById("viewingBar").classList.remove("show");
+  switchViewingTo(window.currentAuthUser.uid, false);
+  switchTab("admin");
+};
 
 // ============ ADMIN DASHBOARD ============
 function calculateUserTotalHours(shifts){let total=0;for(const key in shifts){const arr=shifts[key];if(!Array.isArray(arr))continue;for(const s of arr){if(s&&!s.off&&s.start&&s.end){total+=hoursBetween(s.start,s.end);}}}return total;}
 
+function getShiftToday(u){
+  const monday=getMonday(new Date());
+  const key=fmtDate(monday);
+  const dayIdx=(new Date().getDay()+6)%7;
+  const week=(u.shifts&&u.shifts[key])||[];
+  return week[dayIdx]||null;
+}
+
 function renderAdminDashboard(){
   if(!window.isOwner)return;
   
-  // Calculate stats
   let totalWeeks=0,totalHours=0;
   allUsers.forEach(u=>{
     totalWeeks+=Object.keys(u.shifts||{}).length;
@@ -775,8 +724,16 @@ function renderAdminUsers(){
   let users=allUsers.slice();
   
   if(search){users=users.filter(u=>(u.name||"").toLowerCase().includes(search)||(u.email||"").toLowerCase().includes(search));}
-  if(adminFilterMode==="shifts"){users=users.filter(u=>Object.keys(u.shifts||{}).length>0);}
-  else if(adminFilterMode==="messages"){users=users.filter(u=>(u.messages||[]).some(m=>!m.read));}
+  
+  if(adminFilterMode==="duty"){
+    users=users.filter(u=>{
+      const shift=getShiftToday(u);
+      return shift && !shift.off && shift.start && shift.end;
+    });
+  }
+  else if(adminFilterMode==="messages"){
+    users=users.filter(u=>(u.messages||[]).some(m=>!m.read));
+  }
   
   users.sort((a,b)=>(a.name||a.email||"").localeCompare(b.name||b.email||""));
   const meIdx=users.findIndex(u=>u.uid===window.currentAuthUser.uid);
@@ -787,9 +744,25 @@ function renderAdminUsers(){
   list.innerHTML=users.map(u=>{
     const weeksCount=Object.keys(u.shifts||{}).length;
     const totalHours=calculateUserTotalHours(u.shifts||{});
-    const unread=(u.messages||[]).filter(m=>!m.read).length;
     const isMe=u.uid===window.currentAuthUser.uid;
     const initials=(u.name||u.email||"?").split(" ").map(w=>w[0]||"").slice(0,2).join("").toUpperCase();
+    
+    // Check Duty
+    const todayShift=getShiftToday(u);
+    let dutyHtml="";
+    let isWorking=false;
+    if(todayShift){
+      if(todayShift.off) dutyHtml=`<span class="badge-off-duty">🛌 Off Day</span>`;
+      else if(todayShift.start && todayShift.end){ 
+        dutyHtml=`<span class="badge-on-duty">🟢 Today: ${todayShift.start}-${todayShift.end}</span>`;
+        isWorking=true;
+      }
+    }
+
+    // Last Seen
+    let lastSeenStr="Never";
+    if(u.lastSeen && u.lastSeen.toDate) lastSeenStr=timeAgo(u.lastSeen.toDate());
+    else if(u.lastSeen) lastSeenStr=timeAgo(new Date(u.lastSeen));
     
     return `<div class="admin-user-card" onclick="openUserDetail('${u.uid}')">
       <div class="avatar">${escapeHtml(initials||"?")}</div>
@@ -797,8 +770,9 @@ function renderAdminUsers(){
         <div class="name">${escapeHtml(u.name||"Unnamed")} ${isMe?'<span style="color:var(--accent-2);font-size:10px;">(You)</span>':''}</div>
         <div class="email">${escapeHtml(u.email||"")}</div>
         <div class="meta">
-          <span>${weeksCount} weeks</span> · <span>${totalHours.toFixed(0)}h</span>
-          ${unread>0?`<span style="color:var(--danger);margin-left:auto;">📬 ${unread}</span>`:''}
+          <div>📅 <span>${weeksCount} weeks</span> · <span>${totalHours.toFixed(0)}h</span></div>
+          <div style="color:var(--muted); font-size:10px; margin-top:2px;">🕒 ${lastSeenStr}</div>
+          ${dutyHtml}
         </div>
       </div>
     </div>`;
@@ -821,6 +795,12 @@ window.openUserDetail=function(uid){
   const hrs=calculateUserTotalHours(u.shifts||{});
   document.getElementById("udStats").textContent=`${weeks} weeks · ${hrs.toFixed(0)} total hours`;
   
+  // Last seen
+  let lastSeenStr="Never";
+  if(u.lastSeen && u.lastSeen.toDate) lastSeenStr=timeAgo(u.lastSeen.toDate());
+  else if(u.lastSeen) lastSeenStr=timeAgo(new Date(u.lastSeen));
+  document.getElementById("udLastSeen").textContent="Last seen: "+lastSeenStr;
+  
   // Build current week schedule
   const monday=getMonday(new Date());
   const key=fmtDate(monday);
@@ -832,7 +812,7 @@ window.openUserDetail=function(uid){
     if(s.off)timeStr="OFF";
     else if(s.start&&s.end)timeStr=`${s.start} – ${s.end}`;
     const isToday=addDays(monday,i).toDateString()===new Date().toDateString();
-    weekHtml+=`<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border); font-size:12px; ${isToday?'color:var(--accent);font-weight:600;':''}">
+    weekHtml+=`<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border); font-size:12px; ${isToday?'color:var(--accent);font-weight:700;':'color:var(--text);'}">
       <span>${DAY_SHORT[currentLang][i]} ${fmtDisp(addDays(monday,i))}</span>
       <span style="${s.off?'color:var(--muted);':'color:var(--accent-2);font-weight:600;'}">${timeStr}</span>
     </div>`;
@@ -846,15 +826,18 @@ window.closeUserDetail=function(){document.getElementById("userDetailModal").cla
 window.udSwitchToUser=function(){
   if(!selectedAdminUid)return;
   closeUserDetail();
-  switchViewingTo(selectedAdminUid);
+  switchViewingTo(selectedAdminUid, true); // true = impersonate
   switchTab("week");
-  showToast("👁 Viewing user schedule");
 };
 window.udSendMessage=function(){
   if(!selectedAdminUid)return;
   closeUserDetail();
-  switchViewingTo(selectedAdminUid);
-  setTimeout(()=>openSendMessageModal(),350);
+  switchViewingTo(selectedAdminUid, true); // impersonate to get their messages
+  setTimeout(()=>{
+    document.getElementById("sendMsgTo").textContent=viewingData.name||viewingData.email||"User";
+    document.getElementById("sendMsgText").value="";
+    document.getElementById("sendMessageModal").classList.add("show");
+  }, 350);
 };
 
 // ============ AUTH ============
@@ -870,19 +853,18 @@ window.doAuth=async function(){
   if(authMode==="signup"&&!name){errEl.textContent="Please enter your name.";errEl.style.display="block";return;}
   const submitBtn=document.getElementById("authSubmitBtn");submitBtn.disabled=true;submitBtn.textContent="Please wait...";
   try{
-    if(authMode==="signup"){const cred=await fns.createUserWithEmailAndPassword(window.fbAuth,email,password);await fns.updateProfile(cred.user,{displayName:name});await fns.setDoc(fns.doc(window.fbDb,"users",cred.user.uid),{name:name,email:email,createdAt:fns.serverTimestamp(),shifts:{},messages:[],settings:defaultSettings()});}
+    if(authMode==="signup"){const cred=await fns.createUserWithEmailAndPassword(window.fbAuth,email,password);await fns.updateProfile(cred.user,{displayName:name});await fns.setDoc(fns.doc(window.fbDb,"users",cred.user.uid),{name:name,email:email,createdAt:fns.serverTimestamp(),lastSeen:fns.serverTimestamp(),shifts:{},messages:[],settings:defaultSettings()});}
     else{await fns.signInWithEmailAndPassword(window.fbAuth,email,password);}
   }catch(e){let msg=e.message||"Authentication failed";if(e.code==="auth/email-already-in-use")msg="Email already registered. Try signing in.";if(e.code==="auth/invalid-email")msg="Invalid email address.";if(e.code==="auth/weak-password")msg="Password must be at least 6 characters.";if(e.code==="auth/wrong-password"||e.code==="auth/invalid-credential")msg="Wrong email or password.";if(e.code==="auth/user-not-found")msg="No account with this email. Sign up first.";errEl.textContent=msg;errEl.style.display="block";}
   finally{submitBtn.disabled=false;submitBtn.textContent=authMode==="signup"?"Sign Up":"Sign In";}
 };
 
-window.forgotPassword=async function(){const fns=window.fbFns;const email=document.getElementById("authEmail").value.trim();if(!email){document.getElementById("authError").textContent="Enter your email first.";document.getElementById("authError").style.display="block";return;}try{await fns.sendPasswordResetEmail(window.fbAuth,email);showToast("Password reset email sent to "+email);}catch(e){document.getElementById("authError").textContent=e.message;document.getElementById("authError").style.display="block";}};
 window.signOutUser=async function(){await window.fbFns.signOut(window.fbAuth);closeMenuModal();};
 
 // ============ WEEK ============
 function getWeek(weekStart){if(!viewingData)return Array.from({length:7},()=>emptyDay());const key=fmtDate(weekStart);return(viewingData.shifts&&viewingData.shifts[key])||Array.from({length:7},()=>emptyDay());}
 function emptyDay(){return{off:false,start:"",end:"",note:""};}
-async function setWeek(weekStart,arr){const fns=window.fbFns;if(!viewingUid)return;const key=fmtDate(weekStart);if(!viewingData)viewingData={shifts:{}};if(!viewingData.shifts)viewingData.shifts={};viewingData.shifts[key]=arr;try{await fns.updateDoc(fns.doc(window.fbDb,"users",viewingUid),{[`shifts.${key}`]:arr});}catch(e){console.error("Save failed:",e);showToast("Save failed: "+e.message);}}
+async function setWeek(weekStart,arr){const fns=window.fbFns;if(!viewingUid)return;const key=fmtDate(weekStart);if(!viewingData)viewingData={shifts:{}};if(!viewingData.shifts)viewingData.shifts={};viewingData.shifts[key]=arr;try{await fns.updateDoc(fns.doc(window.fbDb,"users",viewingUid),{[`shifts.${key}`]:arr});}catch(e){showToast("Save failed: "+e.message);}}
 
 window.switchTab=function(name){
   ["week","month","admin"].forEach(tab=>{const el=document.getElementById("tab-"+tab);if(el)el.style.display=(tab===name)?"block":"none";});
@@ -953,91 +935,29 @@ function renderMonth(){
 window.changeMonth=function(dir){currentMonth=new Date(currentMonth.getFullYear(),currentMonth.getMonth()+dir,1);renderMonth();};
 
 // ============ SETTINGS ============
-window.openSettings=function(){const s=(viewingData&&viewingData.settings)||{};document.getElementById("setTheme").value=document.documentElement.getAttribute("data-theme")||"dark";document.getElementById("setLang").value=currentLang;document.getElementById("setCompany").value=s.company||"";document.getElementById("setCompanyPlace").value=s.companyPlace||"";document.getElementById("setPosition").value=s.position||"";document.getElementById("setRate").value=s.hourlyRate||"";document.getElementById("setCurrency").value=s.currency||"€";document.getElementById("setTarget").value=s.targetWeekly||"";document.getElementById("setAlarmEnabled").checked=!!s.alarmEnabled;document.getElementById("setAlarmBefore").value=s.alarmBefore||30;document.getElementById("settingsModal").classList.add("show");};
+window.openSettings=function(){const s=(viewingData&&viewingData.settings)||{};document.getElementById("setTheme").value=document.documentElement.getAttribute("data-theme")||"dark";document.getElementById("setCompany").value=s.company||"";document.getElementById("setCompanyPlace").value=s.companyPlace||"";document.getElementById("setPosition").value=s.position||"";document.getElementById("setRate").value=s.hourlyRate||"";document.getElementById("setCurrency").value=s.currency||"€";document.getElementById("setAlarmEnabled").checked=!!s.alarmEnabled;document.getElementById("setAlarmBefore").value=s.alarmBefore||30;document.getElementById("settingsModal").classList.add("show");};
 window.closeSettings=function(){document.getElementById("settingsModal").classList.remove("show");};
 window.saveSettings=async function(){
   const fns=window.fbFns;if(!viewingUid)return;
-  const theme=document.getElementById("setTheme").value;const lang=document.getElementById("setLang").value;
-  const newSettings={currency:document.getElementById("setCurrency").value.trim()||"€",hourlyRate:parseFloat(document.getElementById("setRate").value)||0,targetWeekly:parseFloat(document.getElementById("setTarget").value)||0,alarmEnabled:document.getElementById("setAlarmEnabled").checked,alarmBefore:parseInt(document.getElementById("setAlarmBefore").value)||30,company:document.getElementById("setCompany").value.trim(),companyPlace:document.getElementById("setCompanyPlace").value.trim(),position:document.getElementById("setPosition").value.trim(),language:lang};
-  applyTheme(theme);currentLang=lang;localStorage.setItem(K_LANG,lang);applyTranslations();
+  const theme=document.getElementById("setTheme").value;
+  const newSettings={currency:document.getElementById("setCurrency").value.trim()||"€",hourlyRate:parseFloat(document.getElementById("setRate").value)||0,alarmEnabled:document.getElementById("setAlarmEnabled").checked,alarmBefore:parseInt(document.getElementById("setAlarmBefore").value)||30,company:document.getElementById("setCompany").value.trim(),companyPlace:document.getElementById("setCompanyPlace").value.trim(),position:document.getElementById("setPosition").value.trim()};
+  applyTheme(theme);
   if(!viewingData)viewingData={};viewingData.settings=newSettings;
-  try{await fns.updateDoc(fns.doc(window.fbDb,"users",viewingUid),{settings:newSettings});showToast("✓");closeSettings();updateWorkInfoDisplay();renderWeek();if(document.getElementById("tab-month").style.display==="block")renderMonth();}catch(e){showToast("Save failed: "+e.message);}
-};
-
-// ============ TRANSFER ============
-window.openTransferModal=function(){
-  if(!window.isOwner)return;
-  closeMenuModal();
-  const sel=document.getElementById("transferSource");
-  sel.innerHTML=`<option value="">— pick a user —</option>`;
-  allUsers.forEach(u=>{
-    if(u.uid===window.currentAuthUser.uid)return;
-    const opt=document.createElement("option");opt.value=u.uid;
-    const count=Object.keys(u.shifts||{}).length;
-    opt.textContent=`${u.name||u.email} (${count} weeks)`;
-    sel.appendChild(opt);
-  });
-  sel.value="";
-  document.getElementById("transferModal").classList.add("show");
-};
-window.closeTransferModal=function(){document.getElementById("transferModal").classList.remove("show");};
-window.doTransferData=async function(){
-  const fns=window.fbFns;
-  const srcUid=document.getElementById("transferSource").value;
-  if(!srcUid){alert("Please pick a source user.");return;}
-  if(srcUid===viewingUid){alert("Source and destination are the same.");return;}
-  const srcUser=allUsers.find(u=>u.uid===srcUid);
-  if(!srcUser){alert("Source user not found.");return;}
-  const srcName=srcUser.name||srcUser.email;
-  const shiftsCount=Object.keys(srcUser.shifts||{}).length;
-  if(!confirm(`Copy data from "${srcName}" to your account?\n\n• ${shiftsCount} weeks of shifts\n• Settings\n\n⚠ This will OVERWRITE your current data.`))return;
-  try{
-    const update={shifts:srcUser.shifts||{},settings:srcUser.settings||defaultSettings()};
-    await fns.updateDoc(fns.doc(window.fbDb,"users",viewingUid),update);
-    if(!viewingData)viewingData={};
-    viewingData.shifts=update.shifts;viewingData.settings=update.settings;
-    if(viewingData.settings.language){currentLang=viewingData.settings.language;localStorage.setItem(K_LANG,currentLang);applyTranslations();}
-    closeTransferModal();
-    showToast("✓ Data copied successfully");
-    renderWeek();updateWorkInfoDisplay();renderAdminDashboard();
-  }catch(e){showToast("Transfer failed: "+e.message);}
+  try{await fns.updateDoc(fns.doc(window.fbDb,"users",viewingUid),{settings:newSettings});showToast("✓");closeSettings();renderWeek();if(document.getElementById("tab-month").style.display==="block")renderMonth();}catch(e){showToast("Save failed: "+e.message);}
 };
 
 // ============ MESSAGES ============
 window.openSendMessageModal=function(){if(!viewingData){showToast("No user selected");return;}document.getElementById("sendMsgTo").textContent=viewingData.name||viewingData.email||"User";document.getElementById("sendMsgText").value="";document.getElementById("sendMessageModal").classList.add("show");};
 window.closeSendMessageModal=function(){document.getElementById("sendMessageModal").classList.remove("show");};
 window.sendMessage=async function(){const fns=window.fbFns;const text=document.getElementById("sendMsgText").value.trim();if(!text){alert("Please write a message");return;}if(!viewingUid)return;const owner=window.currentAuthUser;const newMsg={from:owner.uid,fromEmail:owner.email,fromName:owner.displayName||"Owner",text:text,timestamp:new Date().toISOString(),read:false};const existing=(viewingData&&viewingData.messages)||[];const updated=[...existing,newMsg];try{await fns.updateDoc(fns.doc(window.fbDb,"users",viewingUid),{messages:updated});closeSendMessageModal();showToast("✓ Message sent");}catch(e){showToast("Send failed: "+e.message);}};
-window.sendMessageEmail=function(){const text=document.getElementById("sendMsgText").value.trim();if(!text){alert("Please write a message");return;}const toEmail=viewingData&&viewingData.email;if(!toEmail){alert("User has no email");return;}const subject=encodeURIComponent("ZiN W — Message from Owner");const body=encodeURIComponent(text);window.location.href=`mailto:${toEmail}?subject=${subject}&body=${body}`;closeSendMessageModal();};
 window.openInboxModal=function(){closeMenuModal();renderInbox();document.getElementById("inboxModal").classList.add("show");dismissBanner();};
 window.closeInboxModal=function(){document.getElementById("inboxModal").classList.remove("show");};
 function renderInbox(){const msgs=((viewingData&&viewingData.messages)||[]).slice().sort((a,b)=>(b.timestamp||"").localeCompare(a.timestamp||""));const list=document.getElementById("msgList");if(msgs.length===0){list.innerHTML=`<div class="msg-empty">📭 No messages yet</div>`;return;}list.innerHTML=msgs.map(m=>{const date=m.timestamp?new Date(m.timestamp).toLocaleString():"";return `<div class="msg-item ${m.read?"":"unread"}"><div class="head"><span class="from">👑 ${escapeHtml(m.fromName||"Owner")}</span><span>${escapeHtml(date)}</span></div><div class="text">${escapeHtml(m.text)}</div></div>`;}).join("");}
-window.markAllRead=async function(){const fns=window.fbFns;if(!viewingUid)return;const msgs=(viewingData&&viewingData.messages)||[];const updated=msgs.map(m=>({...m,read:true}));try{await fns.updateDoc(fns.doc(window.fbDb,"users",viewingUid),{messages:updated});renderInbox();updateMessageBadge();showToast("All marked as read");}catch(e){showToast("Failed: "+e.message);}};
-
-// ============ FEEDBACK ============
-window.openFeedbackModal=function(){closeMenuModal();closeSettings();document.getElementById("fbText").value="";document.getElementById("fbError").style.display="none";feedbackType="bug";document.querySelectorAll(".fb-type-chip").forEach(c=>c.classList.toggle("active",c.dataset.fb==="bug"));document.getElementById("feedbackModal").classList.add("show");};
-window.closeFeedbackModal=function(){document.getElementById("feedbackModal").classList.remove("show");};
-document.addEventListener("click",(e)=>{if(e.target.classList.contains("fb-type-chip")||(e.target.parentElement&&e.target.parentElement.classList.contains("fb-type-chip"))){const chip=e.target.classList.contains("fb-type-chip")?e.target:e.target.parentElement;feedbackType=chip.dataset.fb;document.querySelectorAll(".fb-type-chip").forEach(c=>c.classList.toggle("active",c.dataset.fb===feedbackType));}});
-window.submitFeedback=async function(){const fns=window.fbFns;const text=document.getElementById("fbText").value.trim();const errEl=document.getElementById("fbError");errEl.style.display="none";if(!text){errEl.textContent="Please write a message.";errEl.style.display="block";return;}try{await fns.addDoc(fns.collection(window.fbDb,"feedback"),{from:window.currentAuthUser.uid,fromEmail:window.currentAuthUser.email,fromName:(viewingData&&viewingData.name)||window.currentAuthUser.email,type:feedbackType,text:text,timestamp:fns.serverTimestamp(),read:false});closeFeedbackModal();showToast("✓ Feedback sent to owner");}catch(e){errEl.textContent="Send failed: "+e.message;errEl.style.display="block";}};
-function startFeedbackListener(){const fns=window.fbFns;if(unsubFeedback)unsubFeedback();try{const q=fns.query(fns.collection(window.fbDb,"feedback"),fns.orderBy("timestamp","desc"));unsubFeedback=fns.onSnapshot(q,(snap)=>{feedbackCount=snap.size;const badge=document.getElementById("fbBadge");if(badge){badge.textContent=feedbackCount;badge.classList.toggle("show",feedbackCount>0);}},(err)=>{console.warn("Feedback listener error:",err.message);});}catch(e){console.warn(e);}}
-window.openFeedbackInbox=async function(){closeMenuModal();const fns=window.fbFns;const list=document.getElementById("fbList");list.innerHTML=`<div class="msg-empty">Loading...</div>`;document.getElementById("feedbackInboxModal").classList.add("show");try{const q=fns.query(fns.collection(window.fbDb,"feedback"),fns.orderBy("timestamp","desc"));const snap=await fns.getDocs(q);if(snap.empty){list.innerHTML=`<div class="msg-empty">📭 No feedback yet</div>`;return;}const typeIcon={bug:"🐛",feature:"✨",question:"❓",other:"💭"};let html="";snap.forEach(d=>{const f=d.data();const date=f.timestamp&&f.timestamp.toDate?f.timestamp.toDate().toLocaleString():"";html+=`<div class="msg-item ${f.read?"":"unread"}"><div class="head"><span class="from">${typeIcon[f.type]||"💭"} ${escapeHtml(f.fromName||f.fromEmail||"User")}</span><span>${escapeHtml(date)}</span></div><div class="text">${escapeHtml(f.text)}</div></div>`;});list.innerHTML=html;}catch(e){list.innerHTML=`<div class="msg-empty">Error: ${escapeHtml(e.message)}</div>`;}};
-window.closeFeedbackInbox=function(){document.getElementById("feedbackInboxModal").classList.remove("show");};
-
-// ============ ALARM ============
-function startAlarmChecker(){if(alarmCheckInterval)clearInterval(alarmCheckInterval);alarmCheckInterval=setInterval(checkAlarms,30000);checkAlarms();}
-function checkAlarms(){const s=(viewingData&&viewingData.settings)||{};if(!s.alarmEnabled)return;const now=new Date();const todayKey=fmtDate(now);const shifts=(viewingData&&viewingData.shifts)||{};const weekKey=fmtDate(getMonday(now));const week=shifts[weekKey]||[];const dayIdx=(now.getDay()+6)%7;const today=week[dayIdx];if(!today||today.off||!today.start)return;const[sh,sm]=today.start.split(":").map(Number);const shiftStart=new Date(now);shiftStart.setHours(sh,sm,0,0);const minutesBefore=s.alarmBefore||30;const alarmTime=new Date(shiftStart.getTime()-minutesBefore*60000);const diffMs=alarmTime-now;if(diffMs<=60000&&diffMs>-60000){const key=todayKey+"_"+today.start;if(firedAlarms[key])return;firedAlarms[key]=true;playAlarm();showNotif("⏰ Shift starts soon",`Shift at ${today.start} (in ${minutesBefore} min)`);}}
-function playAlarm(){try{const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;const ctx=new Ctx();[880,1100].forEach((freq,i)=>{const o=ctx.createOscillator();const g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type="sine";o.frequency.value=freq;const t0=ctx.currentTime+i*0.5;g.gain.setValueAtTime(0.3,t0);g.gain.exponentialRampToValueAtTime(0.001,t0+1.2);o.start(t0);o.stop(t0+1.3);});}catch(e){}showToast("⏰ Alarm!",5000);}
-function showNotif(title,body){if(!("Notification"in window))return;if(Notification.permission==="granted"){try{new Notification(title,{body,icon:"icon-192.png"});}catch(e){}}}
-window.requestNotifPerm=async function(){if(!("Notification"in window)){showToast("Not supported");return;}const p=await Notification.requestPermission();showToast(p==="granted"?"✓ Enabled":"✗ Denied");};
-window.testAlarm=function(){playAlarm();showNotif("⏰ Test","Test notification");};
+window.markAllRead=async function(){const fns=window.fbFns;if(!viewingUid)return;const msgs=(viewingData&&viewingData.messages)||[];const updated=msgs.map(m=>({...m,read:true}));try{await fns.updateDoc(fns.doc(window.fbDb,"users",viewingUid),{messages:updated});renderInbox();document.getElementById("msgBadge").classList.remove("show");showToast("All marked as read");}catch(e){showToast("Failed: "+e.message);}};
 
 // ============ MENU ============
-window.openMenuModal=function(){document.getElementById("ownerMenu").style.display=window.isOwner?"block":"none";updateWorkInfoDisplay();updateMessageBadge();document.getElementById("menuModal").classList.add("show");};
+window.openMenuModal=function(){document.getElementById("menuWorkCard").style.display="none";if(viewingData&&viewingData.settings){const s=viewingData.settings;if(s.company||s.position){document.getElementById("menuWorkCard").style.display="block";document.getElementById("mwcCompany").style.display=s.company?"block":"none";document.getElementById("mwcCompanyVal").textContent=s.company;document.getElementById("mwcPosition").style.display=s.position?"block":"none";document.getElementById("mwcPositionVal").textContent=s.position;document.getElementById("mwcPlace").style.display=s.companyPlace?"block":"none";document.getElementById("mwcPlaceVal").textContent=s.companyPlace;}}document.getElementById("menuUserEmail").textContent=window.currentAuthUser?window.currentAuthUser.email:"";document.getElementById("menuModal").classList.add("show");};
 window.closeMenuModal=function(){document.getElementById("menuModal").classList.remove("show");};
-
-function buildBackupData(){return JSON.stringify({profile:viewingData&&viewingData.name,email:viewingData&&viewingData.email,shifts:(viewingData&&viewingData.shifts)||{},settings:(viewingData&&viewingData.settings)||{},exportedAt:new Date().toISOString()},null,2);}
-window.downloadBackup=function(){const data=buildBackupData();const blob=new Blob([data],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`zin-w-${fmtDate(new Date())}.json`;a.click();URL.revokeObjectURL(url);closeMenuModal();closeSettings();};
-window.emailBackup=function(){const data=buildBackupData();const subject=encodeURIComponent("ZiN W — Backup "+fmtDate(new Date()));const body=encodeURIComponent("Backup:\n\n"+data);const mailto=`mailto:?subject=${subject}&body=${body}`;if(mailto.length>7000){if(confirm("Backup is large. Download instead?"))downloadBackup();return;}window.location.href=mailto;closeMenuModal();closeSettings();};
-window.deleteViewingUser=async function(){const fns=window.fbFns;if(!window.isOwner)return;if(viewingUid===window.currentAuthUser.uid){alert("You can't delete yourself.");return;}if(!confirm("Delete this profile and all its data?"))return;try{await fns.deleteDoc(fns.doc(window.fbDb,"users",viewingUid));showToast("Profile deleted");closeMenuModal();await loadAllUsers();await switchViewingTo(window.currentAuthUser.uid);}catch(e){showToast("Delete failed: "+e.message);}};
 
 document.addEventListener("keydown",(e)=>{if(e.key==="Escape"){document.querySelectorAll(".modal-bg.show").forEach(m=>m.classList.remove("show"));}});
 
@@ -1054,28 +974,10 @@ window.exportWeeklyPDF=function(){
   openPrintWindow(html);
 };
 
-window.exportMonthlyPDF=function(){
-  if(!currentMonth){showToast("No month selected");return;}
-  const year=currentMonth.getFullYear();const month=currentMonth.getMonth();
-  const s=(viewingData&&viewingData.settings)||{};const sym=s.currency||"€";const rate=s.hourlyRate||0;
-  const name=(viewingData&&viewingData.name)||"User";const infoLine=[s.position,s.company,s.companyPlace].filter(Boolean).join(" · ");
-  const all=(viewingData&&viewingData.shifts)||{};
-  const monthLabel=currentMonth.toLocaleString(currentLang==="it"?"it-IT":"en-US",{month:"long",year:"numeric"});
-  const firstDay=new Date(year,month,1);const lastDay=new Date(year,month+1,0);const days=[];
-  for(let d=new Date(firstDay);d<=lastDay;d=addDays(d,1)){const weekKey=fmtDate(getMonday(d));const weekArr=all[weekKey]||[];const dayIdx=(d.getDay()+6)%7;days.push({date:new Date(d),shift:weekArr[dayIdx]||emptyDay(),dayIdx});}
-  let totalHours=0,sundayHours=0,shiftCount=0,workDays=0,rowsHtml="";
-  days.forEach(({date,shift,dayIdx})=>{let timeStr="—",hrs=0,isWork=false;if(shift.off)timeStr="OFF";else if(shift.start&&shift.end){timeStr=`${shift.start} – ${shift.end}`;hrs=hoursBetween(shift.start,shift.end);totalHours+=hrs;shiftCount++;workDays++;isWork=true;if(dayIdx===6)sundayHours+=hrs;}const isWeekend=(dayIdx===5||dayIdx===6);const bg=isWeekend?'#fafafa':'';const note=shift.note?`<br><span style="color:#666;font-size:10px;font-style:italic;">📝 ${escapeHtml(shift.note)}</span>`:"";rowsHtml+=`<tr style="background:${bg};"><td style="padding:8px 10px;border-bottom:1px solid #eee;font-weight:700;font-size:12px;">${DAY_SHORT[currentLang][dayIdx]}</td><td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:12px;">${fmtDisp(date)}</td><td style="padding:8px 10px;border-bottom:1px solid #eee;color:${isWork?'#0d9488':'#888'};font-weight:700;font-size:12px;">${timeStr}${note}</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;font-size:12px;font-weight:600;">${hrs?hrs.toFixed(1)+"h":"—"}</td></tr>`;});
-  const salary=totalHours*rate;const sundayExtra=sundayHours*rate*0.1;
-  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${monthLabel}</title><style>body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:25px;color:#1a1f26}h1{font-size:22px;margin:0;color:#0d9488}.sub{color:#666;font-size:12px;margin-top:4px}.info{background:#f0f3f7;padding:10px 14px;border-radius:8px;margin:14px 0;font-size:12px}table{width:100%;border-collapse:collapse;margin:16px 0;font-size:12px}th{background:#0d9488;color:#fff;padding:9px;text-align:left;font-size:10px;text-transform:uppercase}th:not(:first-child):not(:nth-child(2)):not(:nth-child(3)){text-align:right}td:not(:first-child):not(:nth-child(2)):not(:nth-child(3)){text-align:right}.summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:16px 0}.stat{background:#f0f3f7;padding:12px;border-radius:8px;text-align:center}.stat .l{font-size:10px;color:#666;text-transform:uppercase}.stat .v{font-size:18px;font-weight:700;color:#0d9488;margin-top:4px}.totals{background:#0d9488;color:#fff;padding:14px;border-radius:8px;font-size:14px}.footer{color:#888;font-size:10px;text-align:center;margin-top:24px}@media print{body{margin:12mm}button{display:none}}button{background:#0d9488;color:#fff;border:none;padding:10px 20px;border-radius:6px;font-size:14px;cursor:pointer}</style></head><body><h1>📊 ZiN W — Monthly Report</h1><div class="sub">${monthLabel}</div><div class="info"><strong>${escapeHtml(name)}</strong>${infoLine?`<br>${escapeHtml(infoLine)}`:""}</div><div style="margin:14px 0;"><button onclick="window.print()">🖨 Print / Save as PDF</button></div><div class="summary"><div class="stat"><div class="l">Work Days</div><div class="v">${workDays}</div></div><div class="stat"><div class="l">Total Hours</div><div class="v">${totalHours.toFixed(1)}h</div></div><div class="stat"><div class="l">Sunday Hours</div><div class="v">${sundayHours.toFixed(1)}h</div></div></div><table><thead><tr><th>Day</th><th>Date</th><th style="text-align:left">Shift</th><th style="text-align:right">Hours</th></tr></thead><tbody>${rowsHtml}</tbody></table><div class="totals"><div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Shifts: <strong>${shiftCount}</strong></span><span>Total: <strong>${totalHours.toFixed(1)}h</strong></span></div>${sundayHours>0?`<div style="font-size:12px;opacity:0.9;">Sunday: ${sundayHours.toFixed(1)}h (+10%)</div>`:""}${rate?`<div style="font-size:12px;opacity:0.9;margin-top:6px;">Rate: ${sym}${rate}/h</div>`:""}${rate?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.3);">Estimated gross: <strong>${sym}${(salary+sundayExtra).toFixed(2)}</strong></div>`:""}</div><div class="footer">ZiN W · ${new Date().toLocaleString()}</div></body></html>`;
-  openPrintWindow(html);
-};
-
 function openPrintWindow(html){const win=window.open("","_blank");if(!win){showToast("Popup blocked");return;}win.document.open();win.document.write(html);win.document.close();}
 
 function init(){
   applyTheme(localStorage.getItem(K_THEME)||"dark");
-  currentLang=localStorage.getItem(K_LANG)||"en";
-  applyTranslations();
   currentWeekStart=getMonday(new Date());
   currentMonth=new Date(currentWeekStart.getFullYear(),currentWeekStart.getMonth(),1);
   setTimeout(()=>{if(!window.currentAuthUser&&document.getElementById("splash").style.display!=="none"){document.getElementById("splash").style.display="none";document.getElementById("authModal").classList.add("show");}},6000);
