@@ -44,6 +44,17 @@
   button.ghost{background:transparent;box-shadow:none;}
   button.danger-text{color:var(--danger);}
   button:disabled{opacity:0.4;cursor:not-allowed;}
+  
+  /* Fix AutoFill */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active{
+    -webkit-box-shadow: 0 0 0 30px var(--panel-2) inset !important;
+    -webkit-text-fill-color: var(--text) !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
   input,select,textarea{background:var(--panel-2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:14px;font-family:inherit;width:100%;}
   input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);}
   textarea{resize:vertical;min-height:80px;}
@@ -113,31 +124,34 @@
   .fb-type-chip.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;}
   [data-theme="light"] .fb-type-chip.active{color:#fff;}
 
-  /* ============ OWNER DASHBOARD ============ */
+  /* ============ MINIMALIST OWNER DASHBOARD ============ */
   .owner-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px;flex-wrap:wrap;}
   .owner-header h2{margin:0;font-size:15px;font-weight:700;color:var(--text);text-transform:none;letter-spacing:0;}
   .owner-header .count{background:var(--accent);color:var(--bg);padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;}
-  .user-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
-  .user-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:10px;transition:border-color 0.2s,transform 0.15s;}
-  .user-card:hover{border-color:var(--accent);transform:translateY(-1px);}
+  
+  .user-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+  .user-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:10px;transition:all 0.2s;position:relative;}
+  .user-card:hover{border-color:var(--accent);}
   .user-card.viewing{border-color:var(--accent);border-width:2px;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 15%,transparent);}
-  .user-card.is-me{border-left:4px solid var(--accent-2);}
-  .uc-head{display:flex;align-items:center;gap:10px;min-width:0;}
-  .uc-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:14px;flex-shrink:0;letter-spacing:0.5px;}
+  
+  .uc-head{display:flex;align-items:center;gap:12px;min-width:0;}
+  .uc-avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:15px;flex-shrink:0;letter-spacing:0.5px;}
+  .uc-info{flex:1;min-width:0;}
   .uc-name{font-weight:700;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .uc-email{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
-  .uc-badges{display:flex;gap:4px;flex-wrap:wrap;min-height:0;}
+  
+  .uc-stats-inline{font-size:11px;color:var(--muted);margin-top:4px;display:flex;gap:8px;}
+  .uc-stats-inline span{color:var(--text);font-weight:600;}
+  
+  .uc-badges{position:absolute;top:14px;right:14px;display:flex;gap:4px;}
   .uc-badge{font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;}
   .uc-badge.owner-b{background:var(--accent-2);color:var(--bg);}
-  .uc-badge.viewing-b{background:var(--accent);color:var(--bg);}
   .uc-badge.unread-b{background:var(--danger);color:#fff;}
-  .uc-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
-  .uc-stat{background:var(--panel-2);border-radius:6px;padding:8px 6px;text-align:center;}
-  .uc-stat .n{font-weight:800;color:var(--accent);font-size:16px;line-height:1;}
-  .uc-stat .l{color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:0.4px;margin-top:3px;}
-  .uc-actions{display:flex;gap:4px;margin-top:auto;}
-  .uc-actions button{flex:1;padding:7px 4px;font-size:11px;font-weight:600;border-radius:6px;}
-  .uc-actions button.icon-only{flex:0 0 auto;padding:7px 9px;}
+
+  .uc-actions{display:flex;gap:6px;margin-top:auto;align-items:center;}
+  .uc-actions button{flex:1;padding:8px;font-size:12px;font-weight:600;border-radius:6px;display:flex;align-items:center;justify-content:center;gap:4px;}
+  .uc-actions .icon-btn-small{flex:0 0 auto;padding:8px 10px;}
+
   @media (max-width:600px){
     .day{grid-template-columns:1fr auto;}
     .day .dinfo{grid-column:1/-1;}
@@ -275,19 +289,18 @@
     </div>
   </div>
 
-  <!-- ============ OWNER DASHBOARD TAB ============ -->
+  <!-- ============ MINIMALIST OWNER DASHBOARD TAB ============ -->
   <div id="tab-users" style="display:none;">
-    <div class="panel">
+    <div class="panel" style="padding-bottom:10px;">
       <div class="owner-header">
         <h2>👑 <span id="t-ownerDashboard">Owner Dashboard</span></h2>
         <span class="count" id="userCountBadge">0</span>
       </div>
-      <input type="text" id="userSearchBox" placeholder="🔍 Search by name or email..." oninput="filterOwnerUsers()" style="margin-bottom:10px;">
+      <input type="text" id="userSearchBox" placeholder="🔍 Search by name or email..." oninput="filterOwnerUsers()" autocomplete="off" style="margin-bottom:10px;">
       <div class="chip-row" id="userFilterChips" style="margin-bottom:0;">
         <button type="button" class="chip active" onclick="setUserFilter('all', this)" id="t-filterAll">All</button>
         <button type="button" class="chip" onclick="setUserFilter('shifts', this)" id="t-filterShifts">Has shifts</button>
         <button type="button" class="chip" onclick="setUserFilter('messages', this)" id="t-filterMsgs">Unread msgs</button>
-        <button type="button" class="chip" onclick="setUserFilter('recent', this)" id="t-filterRecent">Recent</button>
       </div>
     </div>
     <div id="userCards" class="user-cards-grid"></div>
@@ -459,6 +472,7 @@
         <div style="font-size:11px;color:var(--accent);text-transform:uppercase;margin-bottom:6px;" id="t-ownercontrols">Owner controls</div>
         <button onclick="closeMenuModal(); switchTab('users');" style="width:100%;margin-bottom:6px;">👑 <span id="t-openDashboard">Open Owner Dashboard</span></button>
         <button onclick="openFeedbackInbox()" style="width:100%;margin-bottom:6px;">📥 <span id="t-viewfeedback">View Feedback</span> <span class="pill-badge" id="fbBadge" style="margin-left:6px;">0</span></button>
+        <button onclick="openTransferModal()" style="width:100%;margin-bottom:6px;">📤 <span id="t-transfer">Copy data from a user</span></button>
         <button onclick="deleteViewingUser()" class="danger-text" style="width:100%;" id="t-deleteuser">Delete viewing user</button>
       </div>
     </div>
@@ -701,7 +715,7 @@ function updateWorkInfoDisplay(){
 function updateMessageBadge(){const msgs=(viewingData&&viewingData.messages)||[];const unread=msgs.filter(m=>!m.read).length;const badge=document.getElementById("msgBadge");const menuBadge=document.getElementById("menuMsgBadge");if(unread>0){badge.textContent=unread;badge.classList.add("show");menuBadge.textContent=unread;menuBadge.classList.add("show");document.getElementById("msgBanner").classList.add("show");document.getElementById("msgBannerCount").textContent=`${unread} new message${unread>1?"s":""}`;}else{badge.classList.remove("show");menuBadge.classList.remove("show");document.getElementById("msgBanner").classList.remove("show");}}
 window.dismissBanner=function(){document.getElementById("msgBanner").classList.remove("show");};
 
-// ============ OWNER DASHBOARD ============
+// ============ MINIMALIST OWNER DASHBOARD ============
 function calculateUserTotalHours(shifts){let total=0;for(const key in shifts){const arr=shifts[key];if(!Array.isArray(arr))continue;for(const s of arr){if(s&&!s.off&&s.start&&s.end){total+=hoursBetween(s.start,s.end);}}}return total;}
 
 function renderOwnerDashboard(){
@@ -713,14 +727,14 @@ function renderOwnerDashboard(){
   if(search){users=users.filter(u=>(u.name||"").toLowerCase().includes(search)||(u.email||"").toLowerCase().includes(search));}
   if(userFilterMode==="shifts"){users=users.filter(u=>Object.keys(u.shifts||{}).length>0);}
   else if(userFilterMode==="messages"){users=users.filter(u=>(u.messages||[]).some(m=>!m.read));}
-  else if(userFilterMode==="recent"){
-    users.sort((a,b)=>{const aT=a.createdAt&&a.createdAt.toDate?a.createdAt.toDate():new Date(0);const bT=b.createdAt&&b.createdAt.toDate?b.createdAt.toDate():new Date(0);return bT-aT;});
-  }
+  
   if(userFilterMode!=="recent"){users.sort((a,b)=>(a.name||a.email||"").localeCompare(b.name||b.email||""));}
   const meIdx=users.findIndex(u=>u.uid===window.currentAuthUser.uid);
   if(meIdx>0){const me=users.splice(meIdx,1)[0];users.unshift(me);}
+  
   document.getElementById("userCountBadge").textContent=users.length;
   if(users.length===0){grid.innerHTML=`<div class="msg-empty" style="grid-column:1/-1;">📭 No users found</div>`;return;}
+  
   grid.innerHTML=users.map(u=>{
     const weeksCount=Object.keys(u.shifts||{}).length;
     const totalHours=calculateUserTotalHours(u.shifts||{});
@@ -728,28 +742,27 @@ function renderOwnerDashboard(){
     const isMe=u.uid===window.currentAuthUser.uid;
     const isViewing=u.uid===viewingUid;
     const initials=(u.name||u.email||"?").split(" ").map(w=>w[0]||"").slice(0,2).join("").toUpperCase();
-    return `<div class="user-card ${isViewing?"viewing":""} ${isMe?"is-me":""}">
+    
+    return `<div class="user-card ${isViewing?"viewing":""}">
       <div class="uc-head">
         <div class="uc-avatar">${escapeHtml(initials||"?")}</div>
-        <div style="flex:1;min-width:0;">
+        <div class="uc-info">
           <div class="uc-name">${escapeHtml(u.name||"Unnamed")}</div>
           <div class="uc-email">${escapeHtml(u.email||"")}</div>
+          <div class="uc-stats-inline">
+            <span>${weeksCount} weeks</span> · <span>${totalHours.toFixed(0)}h</span>
+          </div>
         </div>
       </div>
       <div class="uc-badges">
-        ${isMe?'<span class="uc-badge owner-b">👑 Owner (You)</span>':''}
-        ${isViewing&&!isMe?'<span class="uc-badge viewing-b">👁 Viewing</span>':''}
-        ${unread>0?`<span class="uc-badge unread-b">📬 ${unread} new</span>`:''}
-      </div>
-      <div class="uc-stats">
-        <div class="uc-stat"><div class="n">${weeksCount}</div><div class="l">Weeks</div></div>
-        <div class="uc-stat"><div class="n">${totalHours.toFixed(0)}h</div><div class="l">Total</div></div>
+        ${isMe?'<span class="uc-badge owner-b">👑 You</span>':''}
+        ${unread>0?`<span class="uc-badge unread-b">📬 ${unread}</span>`:''}
       </div>
       <div class="uc-actions">
-        <button onclick="dashboardViewUser('${u.uid}')" title="View schedule">👁 View</button>
-        <button onclick="dashboardMessage('${u.uid}')" class="icon-only" title="Send message">✉️</button>
-        <button onclick="dashboardCopy('${u.uid}')" class="icon-only" title="Copy data to me">📤</button>
-        ${!isMe?`<button onclick="dashboardDelete('${u.uid}')" class="danger-text icon-only" title="Delete user">🗑</button>`:''}
+        <button onclick="dashboardViewUser('${u.uid}')" class="primary" style="flex:2;">👁 View</button>
+        <button onclick="dashboardMessage('${u.uid}')" class="icon-btn-small" title="Message">✉️</button>
+        <button onclick="dashboardCopy('${u.uid}')" class="icon-btn-small" title="Copy to me">📤</button>
+        ${!isMe?`<button onclick="dashboardDelete('${u.uid}')" class="danger-text icon-btn-small" title="Delete">🗑</button>`:''}
       </div>
     </div>`;
   }).join("");
@@ -765,7 +778,7 @@ window.dashboardDelete=async function(uid){
   const u=allUsers.find(x=>x.uid===uid);
   if(!u)return;
   if(u.uid===window.currentAuthUser.uid){alert("You can't delete yourself.");return;}
-  if(!confirm(`Delete "${u.name||u.email}"?\n\nThis removes their profile and all shift data from the app. Their login account remains but they'll see an empty schedule.`))return;
+  if(!confirm(`Delete "${u.name||u.email}"?\n\nThis removes their profile and all shift data from the app.`))return;
   const fns=window.fbFns;
   try{await fns.deleteDoc(fns.doc(window.fbDb,"users",uid));showToast("✓ User deleted");await loadAllUsers();renderOwnerDashboard();}catch(e){showToast("Delete failed: "+e.message);}
 };
@@ -797,7 +810,15 @@ function getWeek(weekStart){if(!viewingData)return Array.from({length:7},()=>emp
 function emptyDay(){return{off:false,start:"",end:"",note:""};}
 async function setWeek(weekStart,arr){const fns=window.fbFns;if(!viewingUid)return;const key=fmtDate(weekStart);if(!viewingData)viewingData={shifts:{}};if(!viewingData.shifts)viewingData.shifts={};viewingData.shifts[key]=arr;try{await fns.updateDoc(fns.doc(window.fbDb,"users",viewingUid),{[`shifts.${key}`]:arr});}catch(e){console.error("Save failed:",e);showToast("Save failed: "+e.message);}}
 
-window.switchTab=function(name){["week","month","users"].forEach(tab=>{const el=document.getElementById("tab-"+tab);if(el)el.style.display=(tab===name)?"block":"none";});document.querySelectorAll(".tab").forEach(b=>{b.classList.toggle("active",b.dataset.tab===name);});if(name==="month")renderMonth();if(name==="users")renderOwnerDashboard();};
+window.switchTab=function(name){
+  ["week","month","users"].forEach(tab=>{const el=document.getElementById("tab-"+tab);if(el)el.style.display=(tab===name)?"block":"none";});
+  document.querySelectorAll(".tab").forEach(b=>{b.classList.toggle("active",b.dataset.tab===name);});
+  if(name==="month")renderMonth();
+  if(name==="users"){
+    document.getElementById("userSearchBox").value=""; // Clear search box to prevent auto-fill bug
+    renderOwnerDashboard();
+  }
+};
 
 function renderWeek(){
   const arr=getWeek(currentWeekStart);const wEnd=addDays(currentWeekStart,6);
