@@ -306,6 +306,15 @@
           <div class="val" id="mSundayHours" style="color:var(--accent-2);font-size:20px;">0h</div>
         </div>
       </div>
+      
+      <!-- NEW SALARY BOX ADDED HERE -->
+      <div style="margin-top:8px;" id="mSalaryBox">
+        <div class="stat" style="border-color:var(--accent); background:color-mix(in srgb,var(--accent) 8%,var(--panel)); padding:16px;">
+          <div class="lbl" style="font-size:12px; color:var(--accent);">💰 ESTIMATED MONTHLY PAY</div>
+          <div class="val" id="mSalary" style="color:var(--accent); font-size:28px; margin-top:6px;">€0.00</div>
+        </div>
+      </div>
+
     </div>
     <div class="panel">
       <h2>Weekly breakdown</h2>
@@ -512,7 +521,6 @@ onAuthStateChanged(auth, async (user) => {
 
 <script>
 "use strict";
-// আগের কোডে currentLang ডিফাইন করা ছিল না, সেটাই এখানে ঠিক করা হয়েছে
 const currentLang = "en"; 
 const DAY_FULL={en:["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],it:["Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato","Domenica"]};
 const DAY_SHORT={en:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],it:["Lun","Mar","Mer","Gio","Ven","Sab","Dom"]};
@@ -804,7 +812,6 @@ function renderWeek(){
   const today=new Date();today.setHours(0,0,0,0);
   const container=document.getElementById("weekDays");container.innerHTML="";let total=0;
   
-  // এখানে currentLang.en ব্যবহার করা হয়েছে
   arr.forEach((s,i)=>{
     const d=addDays(currentWeekStart,i);const isToday=d.getTime()===today.getTime();
     const hrs=(s.off||!s.start||!s.end)?0:hoursBetween(s.start,s.end);total+=hrs;
@@ -851,9 +858,23 @@ function renderMonth(){
     row.innerHTML=`<div><div>${fmtDisp(mon)}</div><div class="wr-range">${wS} ${wS===1?"shift":"shifts"} · ${fmtDisp(mon)} – ${fmtDisp(wEnd)}</div></div><div class="wr-hours">${wH.toFixed(1)}h</div>`;
     wc.appendChild(row);
   });
-  document.getElementById("mShifts").textContent=totalShifts;document.getElementById("mHours").textContent=totalHours.toFixed(1);document.getElementById("mAvg").textContent=totalShifts?(totalHours/totalShifts).toFixed(1):"0";document.getElementById("mSundayHours").textContent=sundayHours.toFixed(1)+"h";
-  const s=(viewingData&&viewingData.settings)||{};const box=document.getElementById("mSalaryBox");
-  if(s.hourlyRate&&box){box.style.display="block";const sym=s.currency||"€";document.getElementById("mSalary").textContent=`${sym}${(totalHours*s.hourlyRate).toFixed(2)}`;}else if(box){box.style.display="none";}
+  document.getElementById("mShifts").textContent=totalShifts;
+  document.getElementById("mHours").textContent=totalHours.toFixed(1);
+  document.getElementById("mAvg").textContent=totalShifts?(totalHours/totalShifts).toFixed(1):"0";
+  document.getElementById("mSundayHours").textContent=sundayHours.toFixed(1)+"h";
+  
+  // Update Salary Box
+  const s=(viewingData&&viewingData.settings)||{};
+  const box=document.getElementById("mSalaryBox");
+  if(box){
+    if(s.hourlyRate){
+      box.style.display="block";
+      const sym=s.currency||"€";
+      document.getElementById("mSalary").textContent=`${sym}${(totalHours*s.hourlyRate).toFixed(2)}`;
+    } else {
+      box.style.display="none";
+    }
+  }
 }
 window.changeMonth=function(dir){currentMonth=new Date(currentMonth.getFullYear(),currentMonth.getMonth()+dir,1);renderMonth();};
 
